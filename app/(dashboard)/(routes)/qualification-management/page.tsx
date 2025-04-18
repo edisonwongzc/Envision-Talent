@@ -427,55 +427,6 @@ export default function QualificationManagementPage() {
     }));
   };
   
-  // 知识技能标签（按类别和级别分组）
-  const knowledgeSkillTags = {
-    "系统分析": [
-      { id: "sa_t1", name: "基础需求分析", level: "T1", description: "能够记录和理解用户基础需求" },
-      { id: "sa_t2", name: "简单需求分析", level: "T2", description: "能够分析和整理简单的系统需求" },
-      { id: "sa_t3", name: "功能需求分析", level: "T3", description: "能够独立完成功能模块的需求分析" },
-      { id: "sa_t4", name: "系统需求分析", level: "T4", description: "能够进行完整系统的需求分析和规划" },
-      { id: "sa_t5", name: "复杂需求分析", level: "T5", description: "能够分析复杂业务场景并转化为系统需求" },
-      { id: "sa_t6", name: "领域需求专家", level: "T6", description: "成为特定领域的需求分析专家" },
-      { id: "sa_t7", name: "架构级需求规划", level: "T7", description: "能够从战略角度进行系统规划与需求预测" }
-    ],
-    "软件开发": [
-      { id: "sd_t1", name: "基础编码能力", level: "T1", description: "掌握基本编程语法和简单功能实现" },
-      { id: "sd_t2", name: "功能模块开发", level: "T2", description: "能够开发功能模块并保证质量" },
-      { id: "sd_t3", name: "系统功能开发", level: "T3", description: "能够开发完整系统功能并处理异常情况" },
-      { id: "sd_t4", name: "架构设计实现", level: "T4", description: "能够设计与实现系统架构" },
-      { id: "sd_t5", name: "复杂系统开发", level: "T5", description: "能够设计与开发复杂系统" },
-      { id: "sd_t6", name: "技术专家", level: "T6", description: "在特定技术领域成为专家并指导团队" },
-      { id: "sd_t7", name: "技术架构领导", level: "T7", description: "能够领导和指导核心架构与技术方向" }
-    ],
-    "应用实施": [
-      { id: "ai_t1", name: "基础部署能力", level: "T1", description: "能够按照流程完成基础部署任务" },
-      { id: "ai_t2", name: "环境配置", level: "T2", description: "能够配置应用运行环境" },
-      { id: "ai_t3", name: "应用部署", level: "T3", description: "能够独立完成应用部署与配置" },
-      { id: "ai_t4", name: "复杂环境部署", level: "T4", description: "能够在复杂环境中部署和配置应用" },
-      { id: "ai_t5", name: "部署架构设计", level: "T5", description: "能够设计部署架构和流程" },
-      { id: "ai_t6", name: "部署专家", level: "T6", description: "成为部署与实施领域的专家" },
-      { id: "ai_t7", name: "实施架构领导", level: "T7", description: "能够领导和规划大规模应用实施" }
-    ],
-    "测试验证": [
-      { id: "tv_t1", name: "基础测试执行", level: "T1", description: "能够执行测试用例并记录结果" },
-      { id: "tv_t2", name: "测试用例设计", level: "T2", description: "能够设计测试用例" },
-      { id: "tv_t3", name: "功能测试规划", level: "T3", description: "能够规划功能模块的测试策略" },
-      { id: "tv_t4", name: "系统测试规划", level: "T4", description: "能够规划整个系统的测试策略" },
-      { id: "tv_t5", name: "测试架构设计", level: "T5", description: "能够设计测试架构和自动化框架" },
-      { id: "tv_t6", name: "测试专家", level: "T6", description: "成为测试领域的专家并指导团队" },
-      { id: "tv_t7", name: "测试战略领导", level: "T7", description: "能够制定测试战略并推动组织级实践" }
-    ],
-    "项目管理": [
-      { id: "pm_t1", name: "基础任务管理", level: "T1", description: "能够管理个人任务和时间" },
-      { id: "pm_t2", name: "小组任务协调", level: "T2", description: "能够协调小组内的任务分配" },
-      { id: "pm_t3", name: "项目计划执行", level: "T3", description: "能够执行项目计划并跟踪进度" },
-      { id: "pm_t4", name: "项目管理", level: "T4", description: "能够管理中型项目的范围、时间和资源" },
-      { id: "pm_t5", name: "复杂项目管理", level: "T5", description: "能够管理复杂项目并处理风险" },
-      { id: "pm_t6", name: "项目管理专家", level: "T6", description: "成为项目管理领域的专家" },
-      { id: "pm_t7", name: "项目管理总监", level: "T7", description: "能够管理多个项目并制定项目管理策略" }
-    ]
-  };
-  
   // 关键能力标签（按类别和级别分组）
   const keyAbilityTags = {
     "商业敏锐": [
@@ -596,142 +547,23 @@ export default function QualificationManagementPage() {
     }, {});
   };
 
-  // 添加新的状态变量和功能
-  const [selectedKnowledgeCategory, setSelectedKnowledgeCategory] = useState<string | null>(null);
-  const [selectedKnowledgeItem, setSelectedKnowledgeItem] = useState<any | null>(null);
-  const [knowledgeSearchTerm, setKnowledgeSearchTerm] = useState("");
-  const [selectedKnowledgeItems, setSelectedKnowledgeItems] = useState<string[]>([]);
-
-  // 模拟知识技能列表数据
-  const knowledgeList = [
-    {
-      id: "k1",
-      category: "系统分析",
-      name: "系统设计",
-      level: "T5",
-      description: "能够设计复杂系统架构，并考虑性能、可扩展性和可维护性"
-    },
-    {
-      id: "k2",
-      category: "软件开发",
-      name: "代码质量",
-      level: "T4",
-      description: "能够编写高质量、可维护的代码，并进行代码审查"
-    },
-    {
-      id: "k3",
-      category: "软件开发",
-      name: "技术选型",
-      level: "T5",
-      description: "能够为项目选择合适的技术栈和工具"
-    },
-    {
-      id: "k4",
-      category: "测试验证",
-      name: "测试规范",
-      level: "T4",
-      description: "能够制定测试规范并指导团队成员执行"
-    },
-    {
-      id: "k5",
-      category: "项目管理",
-      name: "资源规划",
-      level: "T5",
-      description: "能够合理规划项目资源并进行风险管理"
-    },
-    {
-      id: "k6",
-      category: "应用实施",
-      name: "应用部署",
-      level: "T4",
-      description: "熟悉不同环境下的应用部署与配置管理"
-    },
-    {
-      id: "k7",
-      category: "系统分析",
-      name: "需求分析",
-      level: "T3",
-      description: "能够分析和整理用户需求，并转化为系统功能"
-    },
-    {
-      id: "k8",
-      category: "软件开发",
-      name: "架构实现",
-      level: "T6",
-      description: "能够实现和维护复杂的系统架构"
-    },
-  ];
-
-  // 按类别分组知识项
-  const knowledgeByCategory = useMemo(() => {
-    return knowledgeList.reduce((groups: {[key: string]: any[]}, item) => {
-      const category = item.category;
-      if (!groups[category]) {
-        groups[category] = [];
-      }
-      groups[category].push(item);
-      return groups;
-    }, {});
-  }, []);
-
-  // 处理知识项选择
-  const handleKnowledgeItemSelect = (item: any) => {
-    setSelectedKnowledgeItem(item);
-  };
-
-  // 处理全选/取消全选
-  const handleSelectAllKnowledge = (category: string, isSelected: boolean) => {
-    const categoryItems = knowledgeList.filter(item => item.category === category);
-    const categoryItemIds = categoryItems.map(item => item.id);
-    
-    if (isSelected) {
-      // 如果全部已选，则移除该类别的所有项
-      setSelectedKnowledgeItems(prev => prev.filter(id => !categoryItemIds.includes(id)));
-    } else {
-      // 否则添加该类别的所有项
-      const newSelected = [...selectedKnowledgeItems];
-      categoryItemIds.forEach(id => {
-        if (!newSelected.includes(id)) {
-          newSelected.push(id);
-        }
-      });
-      setSelectedKnowledgeItems(newSelected);
-    }
-  };
-
-  // 切换单个知识项的选择状态
-  const toggleKnowledgeItemSelection = (id: string) => {
-    setSelectedKnowledgeItems(prev => {
-      if (prev.includes(id)) {
-        return prev.filter(itemId => itemId !== id);
-      } else {
-        return [...prev, id];
-      }
-    });
-  };
-
-  // 过滤知识列表
-  const filteredKnowledgeList = useMemo(() => {
-    if (!knowledgeSearchTerm) return knowledgeList;
-    return knowledgeList.filter(item => 
-      item.name.toLowerCase().includes(knowledgeSearchTerm.toLowerCase()) ||
-      item.category.toLowerCase().includes(knowledgeSearchTerm.toLowerCase()) ||
-      item.description.toLowerCase().includes(knowledgeSearchTerm.toLowerCase())
-    );
-  }, [knowledgeSearchTerm]);
-
-  // 获取当前选中的知识项数量
-  const getSelectedCountByCategory = (category: string) => {
-    const categoryItems = knowledgeList.filter(item => item.category === category);
-    const categoryItemIds = categoryItems.map(item => item.id);
-    return selectedKnowledgeItems.filter(id => categoryItemIds.includes(id)).length;
-  };
-
-  // 检查一个类别是否全部选中
-  const isCategoryAllSelected = (category: string) => {
-    const categoryItems = knowledgeList.filter(item => item.category === category);
-    const categoryItemIds = categoryItems.map(item => item.id);
-    return categoryItemIds.every(id => selectedKnowledgeItems.includes(id));
+  // 添加知识技能标签定义
+  const knowledgeSkillTags: Record<string, Array<{id: string; name: string; level: string; description: string; category: string}>> = {
+    "系统分析": [
+      { id: "sa_t3", name: "需求分析", level: "T3", description: "能够独立完成功能模块的需求分析", category: "系统分析" },
+      { id: "sa_t4", name: "系统需求分析", level: "T4", description: "能够进行完整系统的需求分析和规划", category: "系统分析" },
+      { id: "sa_t5", name: "复杂需求分析", level: "T5", description: "能够分析复杂业务场景并转化为系统需求", category: "系统分析" }
+    ],
+    "软件开发": [
+      { id: "sd_t3", name: "功能开发", level: "T3", description: "能够开发完整系统功能并处理异常情况", category: "软件开发" },
+      { id: "sd_t4", name: "架构设计", level: "T4", description: "能够设计与实现系统架构", category: "软件开发" },
+      { id: "sd_t5", name: "复杂系统开发", level: "T5", description: "能够设计与开发复杂系统", category: "软件开发" }
+    ],
+    "测试验证": [
+      { id: "tv_t3", name: "功能测试规划", level: "T3", description: "能够规划功能模块的测试策略", category: "测试验证" },
+      { id: "tv_t4", name: "系统测试规划", level: "T4", description: "能够规划整个系统的测试策略", category: "测试验证" },
+      { id: "tv_t5", name: "测试架构设计", level: "T5", description: "能够设计测试架构和自动化框架", category: "测试验证" }
+    ]
   };
 
   const [selectedKeyAbilityTags, setSelectedKeyAbilityTags] = useState<string[]>([]);
@@ -781,12 +613,6 @@ export default function QualificationManagementPage() {
             className="px-4 py-2 data-[state=active]:border-b-2 data-[state=active]:border-[#3C5E5C] data-[state=active]:font-medium data-[state=active]:text-gray-900 text-gray-500 rounded-none bg-transparent hover:text-gray-900 data-[state=active]:shadow-none"
           >
             结果应用
-          </TabsTrigger>
-          <TabsTrigger 
-            value="knowledge" 
-            className="px-4 py-2 data-[state=active]:border-b-2 data-[state=active]:border-[#3C5E5C] data-[state=active]:font-medium data-[state=active]:text-gray-900 text-gray-500 rounded-none bg-transparent hover:text-gray-900 data-[state=active]:shadow-none"
-          >
-            知识技能类
           </TabsTrigger>
         </TabsList>
         
@@ -1663,227 +1489,6 @@ export default function QualificationManagementPage() {
             </CardContent>
           </Card>
         </TabsContent>
-        
-        {/* 新增的知识技能类模块，使用左右分栏布局 */}
-        <TabsContent value="knowledge" className="space-y-4 mt-6">
-          <Card className="shadow-sm border-none bg-white rounded-lg overflow-hidden">
-            <CardHeader className="flex flex-row items-center justify-between py-4 px-6 border-b border-gray-100">
-              <CardTitle style={{color: '#3C5E5C'}} className="text-sm font-medium">知识技能管理</CardTitle>
-              <Button 
-                className="bg-[#3C5E5C] hover:bg-[#2A4A48] text-white text-xs px-3 py-1 h-8 rounded-md"
-              >
-                <PlusIcon size={14} className="mr-1" />
-                添加技能
-              </Button>
-            </CardHeader>
-            <CardContent className="p-0">
-              <div className="flex h-[calc(100vh-280px)]">
-                {/* 左侧：技能列表 */}
-                <div className="w-1/3 border-r border-gray-200 overflow-y-auto">
-                  <div className="p-4 border-b border-gray-100">
-                    <div className="relative w-full">
-                      <Input
-                        placeholder="搜索知识技能..."
-                        value={knowledgeSearchTerm}
-                        onChange={(e) => setKnowledgeSearchTerm(e.target.value)}
-                        className="h-9 text-sm pl-3 pr-8 py-1 border-gray-200"
-                      />
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                      </svg>
-                    </div>
-                  </div>
-                  
-                  <div className="divide-y divide-gray-100">
-                    {Object.entries(knowledgeByCategory).map(([category, items]) => (
-                      <div key={category} className="py-2">
-                        <div 
-                          className="px-4 py-2 flex items-center justify-between cursor-pointer hover:bg-gray-50"
-                          onClick={() => setSelectedKnowledgeCategory(selectedKnowledgeCategory === category ? null : category)}
-                        >
-                          <div className="flex items-center">
-                            <div 
-                              className={`flex items-center justify-center w-4 h-4 rounded border mr-2 cursor-pointer ${
-                                isCategoryAllSelected(category)
-                                  ? "bg-[#3C5E5C] border-[#3C5E5C] text-white" 
-                                  : "border-gray-300 text-transparent"
-                              }`}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleSelectAllKnowledge(category, isCategoryAllSelected(category));
-                              }}
-                            >
-                              {isCategoryAllSelected(category) && (
-                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                                  <polyline points="20 6 9 17 4 12"></polyline>
-                                </svg>
-                              )}
-                            </div>
-                            <span className="font-medium text-sm">{category}</span>
-                            <span className="ml-2 text-xs text-gray-500">
-                              {getSelectedCountByCategory(category)}/{items.length}
-                            </span>
-                          </div>
-                          <svg 
-                            xmlns="http://www.w3.org/2000/svg" 
-                            className={`h-4 w-4 transition-transform ${selectedKnowledgeCategory === category ? 'transform rotate-180' : ''}`} 
-                            fill="none" 
-                            viewBox="0 0 24 24" 
-                            stroke="currentColor"
-                          >
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                          </svg>
-                        </div>
-                        
-                        {selectedKnowledgeCategory === category && (
-                          <div className="pl-10 pr-4 space-y-1 py-1">
-                            {items.map((item) => (
-                              <div 
-                                key={item.id}
-                                className={`py-2 px-3 rounded-md flex items-center justify-between cursor-pointer ${
-                                  selectedKnowledgeItem?.id === item.id ? 'bg-[#3C5E5C]/10' : 'hover:bg-gray-50'
-                                }`}
-                                onClick={() => handleKnowledgeItemSelect(item)}
-                              >
-                                <div className="flex items-center">
-                                  <div 
-                                    className={`flex items-center justify-center w-4 h-4 rounded border mr-2 ${
-                                      selectedKnowledgeItems.includes(item.id)
-                                        ? "bg-[#3C5E5C] border-[#3C5E5C] text-white" 
-                                        : "border-gray-300 text-transparent"
-                                    }`}
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      toggleKnowledgeItemSelection(item.id);
-                                    }}
-                                  >
-                                    {selectedKnowledgeItems.includes(item.id) && (
-                                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                                        <polyline points="20 6 9 17 4 12"></polyline>
-                                      </svg>
-                                    )}
-                                  </div>
-                                  <span className="text-sm">{item.name}</span>
-                                </div>
-                                <span className="px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-700">
-                                  {item.level}
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                
-                {/* 右侧：详细内容 */}
-                <div className="w-2/3 p-6 overflow-y-auto">
-                  {selectedKnowledgeItem ? (
-                    <div className="space-y-4">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h3 className="text-lg font-semibold text-gray-800">{selectedKnowledgeItem.name}</h3>
-                          <div className="mt-1 flex items-center">
-                            <Badge variant="secondary" className="mr-2">{selectedKnowledgeItem.category}</Badge>
-                            <Badge>{selectedKnowledgeItem.level}</Badge>
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Button variant="outline" size="sm" className="text-xs h-7">
-                            编辑
-                          </Button>
-                          <Button variant="outline" size="sm" className="text-xs h-7 text-red-500 border-red-200 hover:bg-red-50">
-                            删除
-                          </Button>
-                        </div>
-                      </div>
-                      
-                      <div className="mt-6">
-                        <h4 className="text-sm font-medium text-gray-700 mb-2">能力描述</h4>
-                        <div className="p-4 bg-gray-50 rounded-md">
-                          <p className="text-sm text-gray-700">{selectedKnowledgeItem.description}</p>
-                        </div>
-                      </div>
-                      
-                      <div className="mt-6">
-                        <h4 className="text-sm font-medium text-gray-700 mb-2">适用岗位</h4>
-                        <div className="flex flex-wrap gap-2">
-                          <Badge variant="outline" className="bg-blue-50">高级工程师</Badge>
-                          <Badge variant="outline" className="bg-blue-50">技术专家</Badge>
-                          <Badge variant="outline" className="bg-blue-50">架构师</Badge>
-                        </div>
-                      </div>
-                      
-                      <div className="mt-6">
-                        <h4 className="text-sm font-medium text-gray-700 mb-2">相关技能</h4>
-                        <div className="flex flex-wrap gap-2">
-                          <Badge variant="outline" className="bg-green-50">系统设计</Badge>
-                          <Badge variant="outline" className="bg-green-50">性能优化</Badge>
-                          <Badge variant="outline" className="bg-green-50">架构评审</Badge>
-                        </div>
-                      </div>
-                      
-                      <div className="mt-6">
-                        <h4 className="text-sm font-medium text-gray-700 mb-2">技能发展路径</h4>
-                        <div className="relative">
-                          <div className="flex justify-between mb-2">
-                            <div className="text-center">
-                              <div className="w-8 h-8 rounded-full bg-gray-200 text-gray-700 flex items-center justify-center mx-auto text-xs">T1</div>
-                            </div>
-                            <div className="text-center">
-                              <div className="w-8 h-8 rounded-full bg-gray-200 text-gray-700 flex items-center justify-center mx-auto text-xs">T2</div>
-                            </div>
-                            <div className="text-center">
-                              <div className="w-8 h-8 rounded-full bg-gray-200 text-gray-700 flex items-center justify-center mx-auto text-xs">T3</div>
-                            </div>
-                            <div className="text-center">
-                              <div className="w-8 h-8 rounded-full bg-gray-200 text-gray-700 flex items-center justify-center mx-auto text-xs">T4</div>
-                            </div>
-                            <div className="text-center">
-                              <div className={`w-8 h-8 rounded-full flex items-center justify-center mx-auto text-xs ${
-                                selectedKnowledgeItem.level === 'T5' ? 'bg-[#3C5E5C] text-white' : 'bg-gray-200 text-gray-700'
-                              }`}>T5</div>
-                            </div>
-                            <div className="text-center">
-                              <div className={`w-8 h-8 rounded-full flex items-center justify-center mx-auto text-xs ${
-                                selectedKnowledgeItem.level === 'T6' ? 'bg-[#3C5E5C] text-white' : 'bg-gray-200 text-gray-700'
-                              }`}>T6</div>
-                            </div>
-                            <div className="text-center">
-                              <div className="w-8 h-8 rounded-full bg-gray-200 text-gray-700 flex items-center justify-center mx-auto text-xs">T7</div>
-                            </div>
-                          </div>
-                          <div className="absolute top-4 left-4 right-4 h-0.5 bg-gray-200 -z-10"></div>
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="h-full flex items-center justify-center">
-                      <div className="text-center">
-                        <svg 
-                          xmlns="http://www.w3.org/2000/svg" 
-                          className="h-12 w-12 mx-auto text-gray-300 mb-4" 
-                          fill="none" 
-                          viewBox="0 0 24 24" 
-                          stroke="currentColor"
-                        >
-                          <path 
-                            strokeLinecap="round" 
-                            strokeLinejoin="round" 
-                            strokeWidth={1.5} 
-                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" 
-                            />
-                        </svg>
-                        <p className="text-gray-500">从左侧选择一个知识技能项查看详情</p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
       </Tabs>
       
       {/* 员工详情对话框 */}
@@ -2285,19 +1890,19 @@ export default function QualificationManagementPage() {
               <TabsList className="grid w-full grid-cols-3 bg-gray-100">
                 <TabsTrigger 
                   value="knowledge"
-                  className="data-[state=active]:bg-white"
+                  className="data-[state=active]:bg-[#f8fbfc]"
                 >
                   知识技能
                 </TabsTrigger>
                 <TabsTrigger 
                   value="abilities"
-                  className="data-[state=active]:bg-white"
+                  className="data-[state=active]:bg-[#f8fbfc]"
                 >
                   关键能力
                 </TabsTrigger>
                 <TabsTrigger 
                   value="feedback"
-                  className="data-[state=active]:bg-white"
+                  className="data-[state=active]:bg-[#f8fbfc]"
                 >
                   组织回馈
                 </TabsTrigger>
@@ -2627,19 +2232,19 @@ export default function QualificationManagementPage() {
                 <TabsList className="grid w-full grid-cols-3 bg-gray-100">
                   <TabsTrigger 
                     value="knowledge" 
-                    className="data-[state=active]:bg-white"
+                    className="data-[state=active]:bg-[#f8fbfc]"
                   >
                     知识技能要求
                   </TabsTrigger>
                   <TabsTrigger 
                     value="ability"
-                    className="data-[state=active]:bg-white"
+                    className="data-[state=active]:bg-[#f8fbfc]"
                   >
                     关键能力要求
                   </TabsTrigger>
                   <TabsTrigger 
                     value="feedback"
-                    className="data-[state=active]:bg-white"
+                    className="data-[state=active]:bg-[#f8fbfc]"
                   >
                     组织回馈要求
                   </TabsTrigger>
