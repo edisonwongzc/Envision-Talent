@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
@@ -38,9 +38,17 @@ const MoreIcon = (props: { size?: number }) => (
 
 /**
  * 人才履历详细页面
+ * @param {object} props - 组件属性
+ * @param {string} [props.talentId] - 人才ID
  * @returns {React.ReactElement} 人才履历详细信息组件
  */
-export default function ProfileDetail() {
+export default function ProfileDetail({ talentId }: { talentId?: string }) {
+  // 可以根据talentId加载不同的人才数据
+  console.log('Talent ID:', talentId);
+  
+  // 添加导航标签状态管理
+  const [activeTab, setActiveTab] = useState('岗位模型');
+  
   return (
     <div className="h-full p-6 space-y-6">
       <div className="flex items-center justify-between">
@@ -129,27 +137,39 @@ export default function ProfileDetail() {
               </div>
 
               <div className="border-t flex flex-wrap">
-                <button className="flex-1 py-4 px-2 flex items-center justify-center gap-2 font-medium text-blue-600 border-b-2 border-blue-600 min-w-[120px]">
+                <button 
+                  className={`flex-1 py-4 px-2 flex items-center justify-center gap-2 min-w-[120px] ${activeTab === '岗位模型' ? 'font-medium text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}
+                  onClick={() => setActiveTab('岗位模型')}
+                >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
                     <path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16" />
                   </svg>
                   岗位模型
                 </button>
-                <button className="flex-1 py-4 px-2 flex items-center justify-center gap-2 text-gray-500 min-w-[120px]">
+                <button 
+                  className={`flex-1 py-4 px-2 flex items-center justify-center gap-2 min-w-[120px] ${activeTab === '个人信息' ? 'font-medium text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}
+                  onClick={() => setActiveTab('个人信息')}
+                >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                     <circle cx="12" cy="7" r="4"></circle>
                   </svg>
                   个人信息
                 </button>
-                <button className="flex-1 py-4 px-2 flex items-center justify-center gap-2 text-gray-500 min-w-[120px]">
+                <button 
+                  className={`flex-1 py-4 px-2 flex items-center justify-center gap-2 min-w-[120px] ${activeTab === '远景精神' ? 'font-medium text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}
+                  onClick={() => setActiveTab('远景精神')}
+                >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
                   </svg>
                   远景精神
                 </button>
-                <button className="flex-1 py-4 px-2 flex items-center justify-center gap-2 text-gray-500 min-w-[120px]">
+                <button 
+                  className={`flex-1 py-4 px-2 flex items-center justify-center gap-2 min-w-[120px] ${activeTab === '人岗匹配' ? 'font-medium text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}
+                  onClick={() => setActiveTab('人岗匹配')}
+                >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                     <circle cx="8.5" cy="7" r="4"></circle>
@@ -158,33 +178,48 @@ export default function ProfileDetail() {
                   </svg>
                   人岗匹配
                 </button>
-                <button className="flex-1 py-4 px-2 flex items-center justify-center gap-2 text-gray-500 min-w-[120px]">
+                <button 
+                  className={`flex-1 py-4 px-2 flex items-center justify-center gap-2 min-w-[120px] ${activeTab === '绩效信息' ? 'font-medium text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}
+                  onClick={() => setActiveTab('绩效信息')}
+                >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
                   </svg>
                   绩效信息
                 </button>
-                <button className="flex-1 py-4 px-2 flex items-center justify-center gap-2 text-gray-500 min-w-[120px]">
+                <button 
+                  className={`flex-1 py-4 px-2 flex items-center justify-center gap-2 min-w-[120px] ${activeTab === '工作履历' ? 'font-medium text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}
+                  onClick={() => setActiveTab('工作履历')}
+                >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
                     <polyline points="14 2 14 9 20 9"></polyline>
                   </svg>
                   工作履历
                 </button>
-                <button className="flex-1 py-4 px-2 flex items-center justify-center gap-2 text-gray-500 min-w-[120px]">
+                <button 
+                  className={`flex-1 py-4 px-2 flex items-center justify-center gap-2 min-w-[120px] ${activeTab === '评价' ? 'font-medium text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}
+                  onClick={() => setActiveTab('评价')}
+                >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
                   </svg>
                   评价
                 </button>
-                <button className="flex-1 py-4 px-2 flex items-center justify-center gap-2 text-gray-500 min-w-[120px]">
+                <button 
+                  className={`flex-1 py-4 px-2 flex items-center justify-center gap-2 min-w-[120px] ${activeTab === 'Talent摘要简报' ? 'font-medium text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}
+                  onClick={() => setActiveTab('Talent摘要简报')}
+                >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
                     <polyline points="13 2 13 9 20 9"></polyline>
                   </svg>
                   Talent摘要简报
                 </button>
-                <button className="flex-1 py-4 px-2 flex items-center justify-center gap-2 text-gray-500 min-w-[120px]">
+                <button 
+                  className={`flex-1 py-4 px-2 flex items-center justify-center gap-2 min-w-[120px] ${activeTab === 'Awards' ? 'font-medium text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}
+                  onClick={() => setActiveTab('Awards')}
+                >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <circle cx="12" cy="8" r="7"></circle>
                     <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>
@@ -194,6 +229,204 @@ export default function ProfileDetail() {
               </div>
             </CardContent>
           </Card>
+
+          {/* 添加标签内容 - 根据activeTab显示不同内容 */}
+          {activeTab === '岗位模型' && (
+            <div className="space-y-6">
+              <h2 className="text-lg font-medium">岗位模型分析</h2>
+              <Card className="shadow-sm">
+                <CardContent className="p-6">
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="font-medium text-base mb-2">当前岗位：高级研发工程师</h3>
+                      <p className="text-sm text-gray-600">岗位职责：负责公司核心产品的设计开发和技术攻关，解决复杂技术问题</p>
+                    </div>
+                    
+                    <div className="mt-4">
+                      <h3 className="font-medium text-base mb-2">核心能力要求</h3>
+                      <div className="grid grid-cols-2 gap-4">
+                        <Card className="shadow-sm">
+                          <CardContent className="p-4">
+                            <h4 className="text-sm font-medium mb-2">专业技能</h4>
+                            <div className="flex justify-between items-center mb-1">
+                              <span className="text-xs text-gray-600">架构设计能力</span>
+                              <div className="flex">
+                                <span className="text-yellow-500">★★★★</span>
+                                <span className="text-gray-300">★</span>
+                              </div>
+                            </div>
+                            <div className="flex justify-between items-center mb-1">
+                              <span className="text-xs text-gray-600">算法与数据结构</span>
+                              <div className="flex">
+                                <span className="text-yellow-500">★★★★</span>
+                                <span className="text-gray-300">★</span>
+                              </div>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <span className="text-xs text-gray-600">代码质量控制</span>
+                              <div className="flex">
+                                <span className="text-yellow-500">★★★★★</span>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                        
+                        <Card className="shadow-sm">
+                          <CardContent className="p-4">
+                            <h4 className="text-sm font-medium mb-2">通用能力</h4>
+                            <div className="flex justify-between items-center mb-1">
+                              <span className="text-xs text-gray-600">团队协作</span>
+                              <div className="flex">
+                                <span className="text-yellow-500">★★★★</span>
+                                <span className="text-gray-300">★</span>
+                              </div>
+                            </div>
+                            <div className="flex justify-between items-center mb-1">
+                              <span className="text-xs text-gray-600">沟通表达</span>
+                              <div className="flex">
+                                <span className="text-yellow-500">★★★</span>
+                                <span className="text-gray-300">★★</span>
+                              </div>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <span className="text-xs text-gray-600">解决问题能力</span>
+                              <div className="flex">
+                                <span className="text-yellow-500">★★★★★</span>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+          
+          {activeTab === '个人信息' && (
+            <div className="space-y-6">
+              <h2 className="text-lg font-medium">详细个人信息</h2>
+              <Card className="shadow-sm">
+                <CardContent className="p-6">
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <div>
+                        <h3 className="text-sm font-medium text-gray-500">个人基本信息</h3>
+                        <div className="mt-2 space-y-2">
+                          <div className="flex">
+                            <span className="w-24 text-sm text-gray-500">姓名:</span>
+                            <span className="text-sm font-medium">Kristi Sipes</span>
+                          </div>
+                          <div className="flex">
+                            <span className="w-24 text-sm text-gray-500">年龄:</span>
+                            <span className="text-sm font-medium">28岁</span>
+                          </div>
+                          <div className="flex">
+                            <span className="w-24 text-sm text-gray-500">电话:</span>
+                            <span className="text-sm font-medium">+62-921-019-112</span>
+                          </div>
+                          <div className="flex">
+                            <span className="w-24 text-sm text-gray-500">邮箱:</span>
+                            <span className="text-sm font-medium">kristisipes@gmail.com</span>
+                          </div>
+                          <div className="flex">
+                            <span className="w-24 text-sm text-gray-500">地址:</span>
+                            <span className="text-sm font-medium">纽约市曼哈顿区第五大道123号</span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <h3 className="text-sm font-medium text-gray-500">教育背景</h3>
+                        <div className="mt-2 space-y-2">
+                          <div className="flex">
+                            <span className="w-24 text-sm text-gray-500">最高学历:</span>
+                            <span className="text-sm font-medium">硕士</span>
+                          </div>
+                          <div className="flex">
+                            <span className="w-24 text-sm text-gray-500">毕业院校:</span>
+                            <span className="text-sm font-medium">波士顿大学</span>
+                          </div>
+                          <div className="flex">
+                            <span className="w-24 text-sm text-gray-500">专业:</span>
+                            <span className="text-sm font-medium">计算机科学</span>
+                          </div>
+                          <div className="flex">
+                            <span className="w-24 text-sm text-gray-500">毕业年份:</span>
+                            <span className="text-sm font-medium">2018年</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      <div>
+                        <h3 className="text-sm font-medium text-gray-500">职业信息</h3>
+                        <div className="mt-2 space-y-2">
+                          <div className="flex">
+                            <span className="w-24 text-sm text-gray-500">当前职位:</span>
+                            <span className="text-sm font-medium">高级研发工程师</span>
+                          </div>
+                          <div className="flex">
+                            <span className="w-24 text-sm text-gray-500">工作年限:</span>
+                            <span className="text-sm font-medium">5年</span>
+                          </div>
+                          <div className="flex">
+                            <span className="w-24 text-sm text-gray-500">技能领域:</span>
+                            <span className="text-sm font-medium">前端开发, UI设计, React</span>
+                          </div>
+                          <div className="flex">
+                            <span className="w-24 text-sm text-gray-500">语言能力:</span>
+                            <span className="text-sm font-medium">英语(精通), 中文(熟练)</span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <h3 className="text-sm font-medium text-gray-500">求职意向</h3>
+                        <div className="mt-2 space-y-2">
+                          <div className="flex">
+                            <span className="w-24 text-sm text-gray-500">期望职位:</span>
+                            <span className="text-sm font-medium">技术团队负责人</span>
+                          </div>
+                          <div className="flex">
+                            <span className="w-24 text-sm text-gray-500">期望薪资:</span>
+                            <span className="text-sm font-medium">25-30K</span>
+                          </div>
+                          <div className="flex">
+                            <span className="w-24 text-sm text-gray-500">到岗时间:</span>
+                            <span className="text-sm font-medium">一个月内</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+          
+          {/* 其他标签的内容区域将在后续添加 */}
+          {(activeTab !== '岗位模型' && activeTab !== '个人信息') && (
+            <div className="space-y-6">
+              <h2 className="text-lg font-medium">{activeTab}内容</h2>
+              <Card className="shadow-sm">
+                <CardContent className="p-6 min-h-[300px] flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="text-gray-400 mb-4">
+                      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
+                        <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+                        <polyline points="13 2 13 9 20 9"></polyline>
+                      </svg>
+                    </div>
+                    <h3 className="text-gray-500 mb-2">"{activeTab}"模块正在开发中</h3>
+                    <p className="text-sm text-gray-400">此功能即将上线，敬请期待</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
 
           <div className="space-y-6">
             <h2 className="text-lg font-medium">Hiring Process</h2>

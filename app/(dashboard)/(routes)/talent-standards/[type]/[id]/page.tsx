@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import ProfileDetail from "../profile-detail";
+import ProfileDetail from "../../profile-detail";
 
 /**
  * 人才详情页面路由组件

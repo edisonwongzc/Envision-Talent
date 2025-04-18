@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { PlusIcon, ArrowLeftIcon } from "@/components/icons";
+import { PlusIcon } from "@/components/icons";
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
 interface AbilityItemDetail {
@@ -27,14 +28,6 @@ interface AbilityTypeData {
   type: string;
   description: string;
   items: AbilityItemDetail[];
-}
-
-// 添加生成静态参数函数
-export function generateStaticParams() {
-  return [
-    { type: '知识技能类' },
-    { type: '素质类' }
-  ];
 }
 
 export default function AbilityTypePage({ params }: { params: { type: string } }) {
@@ -110,7 +103,7 @@ export default function AbilityTypePage({ params }: { params: { type: string } }
     <div className="h-full pt-1 px-6 pb-4 space-y-4 bg-[#F3F7FA]">
       <div className="flex items-center space-x-2 mb-4">
         <Link href="/talent-standards" className="text-gray-500 hover:text-gray-700">
-          <ArrowLeftIcon size={16} />
+          <ArrowLeft size={16} />
         </Link>
         <h1 className="text-[18px] font-bold text-gray-800">{abilityData.name}</h1>
       </div>
