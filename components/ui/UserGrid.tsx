@@ -13,42 +13,42 @@ interface UserGridProps {
    * 用户数据数组
    */
   users: User[];
-  
+
   /**
    * 用户卡片点击事件处理
    */
   onUserClick?: (user: User) => void;
-  
+
   /**
    * 用户编辑按钮点击事件处理
    */
   onUserEdit?: (user: User) => void;
-  
+
   /**
    * 是否显示编辑按钮
    */
   showEditButton?: boolean;
-  
+
   /**
    * 每行显示的卡片数量
    */
   columns?: 1 | 2 | 3 | 4 | 5 | 6;
-  
+
   /**
    * 自定义CSS类名
    */
   className?: string;
-  
+
   /**
    * 加载状态
    */
   isLoading?: boolean;
-  
+
   /**
    * 错误信息
    */
   error?: string | null;
-  
+
   /**
    * 无数据时的提示文本
    */
@@ -105,7 +105,7 @@ const UserGrid: React.FC<UserGridProps> = ({
     5: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5',
     6: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6'
   }[columns];
-  
+
   // 加载状态
   if (isLoading) {
     return (
@@ -116,7 +116,7 @@ const UserGrid: React.FC<UserGridProps> = ({
       </div>
     );
   }
-  
+
   // 错误状态
   if (error) {
     return (
@@ -125,16 +125,16 @@ const UserGrid: React.FC<UserGridProps> = ({
       </div>
     );
   }
-  
+
   // 无数据状态
-  if (users.length === 0) {
+  if (!users || users.length === 0) {
     return (
       <div className="bg-gray-50 text-gray-500 p-8 rounded-md text-center">
         {emptyText}
       </div>
     );
   }
-  
+
   // 渲染用户卡片网格
   return (
     <div className={`grid ${gridClassName} gap-6 ${className}`}>
