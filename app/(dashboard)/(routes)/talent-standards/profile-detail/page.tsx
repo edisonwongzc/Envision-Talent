@@ -8,12 +8,12 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { 
   VisionSpiritContent, 
   PersonalInfoContent, 
-  JobModelContent, 
   WorkHistoryContent,
   JobMatchingContent,
   PerformanceContent
 } from '../profile-detail';
 import ProfileNavTabs from '../components/ProfileNavTabs';
+import JobModelContent from '../components/TabContents/JobModelContent';
 
 /**
  * 人才履历详情页面
