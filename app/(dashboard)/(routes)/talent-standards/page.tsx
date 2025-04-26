@@ -13,6 +13,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import MatchingPage from "./matching-page";
 import HorizontalComparisonModal from "./horizontal-comparison-modal";
+import { useRouter } from 'next/navigation';
+import { 
+  VisionSpiritContent, 
+  WorkHistoryContent,
+  JobMatchingContent,
+  PerformanceContent
+} from './profile-detail';
+import { JobModelContent, PersonalInfoContent } from './components/TabContents';
+import ProfileNavTabs from './components/ProfileNavTabs';
 
 /**
  * 能力项接口定义
@@ -49,6 +58,7 @@ interface NewAbility {
   code?: string;
   level?: string;
   positions?: string;
+  behaviors?: string;
 }
 
 interface PositionItem {
@@ -65,6 +75,7 @@ interface PositionItem {
  * @return {React.ReactElement} 人才标准页面
  */
 export default function TalentStandardsPage() {
+  const router = useRouter();
   const [showPositions, setShowPositions] = useState(false);
   const [selectedPosition, setSelectedPosition] = useState("");
   const [showEmployeeList, setShowEmployeeList] = useState(false);
@@ -169,6 +180,7 @@ export default function TalentStandardsPage() {
   const [uploadAbilityId, setUploadAbilityId] = useState<number | null>(null);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploadSuccess, setUploadSuccess] = useState(false);
+  const [showCreateKnowledgeDialog, setShowCreateKnowledgeDialog] = useState(false);
 
   // 移除之前的展开/折叠状态管理，添加选中项状态管理
   const [selectedItem, setSelectedItem] = useState<AbilitySkillItem | null>(null);
@@ -893,6 +905,54 @@ export default function TalentStandardsPage() {
   // 在TalentStandardsPage组件中添加状态变量
   const [selectedKnowledgeSkill, setSelectedKnowledgeSkill] = useState<AbilitySkillItem | null>(null);
   
+  // 添加人才履历标签导航状态
+  const [activeProfileTab, setActiveProfileTab] = useState('远景精神');
+  
+  /**
+   * 处理人才履历标签切换
+   * @param {string} tab - 标签名称
+   */
+  const handleProfileTabChange = (tab: string) => {
+    setActiveProfileTab(tab);
+    console.log(`切换到: ${tab}`);
+  };
+  
+  /**
+   * 根据当前活动标签渲染相应内容
+   * @returns {React.ReactNode} 内容组件
+   */
+  const renderProfileContent = () => {
+    switch (activeProfileTab) {
+      case '远景精神':
+        return <VisionSpiritContent />;
+      case '个人信息':
+        return <PersonalInfoContent />;
+      case '岗位模型':
+        return <JobModelContent />;
+      case '工作履历':
+        return <WorkHistoryContent />;
+      case '人岗匹配':
+        return <JobMatchingContent />;
+      case '绩效信息':
+        return <PerformanceContent />;
+      default:
+        return (
+          <Card className="p-6">
+            <div className="flex justify-center items-center h-64">
+              <p className="text-gray-500">该功能正在开发中...</p>
+            </div>
+          </Card>
+        );
+    }
+  };
+  
+  // 移除或修改 navigateToCategory 函数，因为我们不再需要导航到其他页面
+  const navigateToCategory = (category: string) => {
+    // 现在只是切换标签，而不是导航到新页面
+    setActiveProfileTab(category);
+    console.log(`切换到: ${category}`);
+  };
+  
   return (
     <div className="h-full pt-1 px-6 pb-4 space-y-2 bg-[#F3F7FA]">
       <div className="mb-1">
@@ -922,1841 +982,466 @@ export default function TalentStandardsPage() {
           </TabsTrigger>
         </TabsList>
         
-        <TabsContent value="ability" className="space-y-6 mt-6">
           {/* 能力库管理模块 */}
-          <div className="space-y-4">
-            <Card className="shadow-sm border-none bg-white rounded-lg overflow-hidden">
+        <TabsContent value="ability" className="space-y-6 mt-6">
+          <div className="grid grid-cols-1 gap-6">
+            {/* 能力库 */}
+            {abilities.map(ability => (
+              <Card key={ability.id} className="shadow-sm border-none bg-white rounded-lg overflow-hidden">
               <CardHeader className="flex flex-row items-center justify-between py-4 px-6 border-b border-gray-100">
-                <CardTitle style={{color: '#3C5E5C'}} className="text-sm font-medium">能力库管理</CardTitle>
-                <div className="flex space-x-2">
-                  {/* 移除顶部的创建按钮 */}
-                </div>
-              </CardHeader>
-              <CardContent className="p-6">
-                {/* 改为垂直布局，移除grid相关类 */}
-                <div className="space-y-6">
-                  {/* 知识技能类卡片 */}
-                  {abilities.filter(ability => ability.type === "知识技能").map((ability) => (
-                    <div key={ability.id} className="rounded-lg border border-gray-200 bg-white transition-shadow flex flex-col min-h-[500px]">
-                      <div className="p-4 border-b border-gray-100">
-                    <div className="flex justify-between items-start">
                       <div>
-                            <h3 className="font-semibold text-sm text-gray-800 mb-2">{ability.name}</h3>
-                            <p className="text-sm text-gray-600">{ability.description}</p>
+                    <CardTitle style={{color: '#3C5E5C'}} className="text-sm font-medium">{ability.name}</CardTitle>
+                    <CardDescription className="text-xs">{ability.description}</CardDescription>
                       </div>
-                        </div>
-                      </div>
-                      
-                      <div className="flex flex-1 h-[calc(100%-80px)]">
-                        {/* 左侧：能力列表 */}
-                        <div className="w-1/3 border-r border-gray-200 overflow-y-auto">
-                          <div className="p-4 border-b border-gray-100">
-                            <div className="relative w-full">
-                              <Input
-                                placeholder="搜索能力项..."
-                                className="h-9 text-sm pl-3 pr-8 py-1 border-gray-200"
-                              />
-                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                              </svg>
-                            </div>
-                          </div>
-                          
-                          <div className="p-3 border-b border-gray-100 flex items-center justify-between">
-                            <div className="flex items-center">
-                              <input
-                                type="checkbox"
-                                className="h-4 w-4 rounded border-gray-300 text-[#3C5E5C] focus:ring-[#3C5E5C]"
-                                checked={ability.skillItems?.every(item => selectedItems.includes(item.id)) || false}
-                                onChange={(e) => toggleSelectAll(ability, '', e.target.checked)}
-                              />
-                              <span className="text-xs text-gray-500 ml-2">全选</span>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              {selectedItems.length > 0 && (
-                                <button 
-                                  className="text-xs text-red-600 hover:text-red-800 flex items-center px-2 py-1 border border-red-500 rounded"
-                                  onClick={() => handleBatchDelete(ability)}
-                                >
-                                  <XIcon size={12} className="mr-1" />
-                                  <span>删除</span>
-                      </button>
-                              )}
-                              <Dialog 
-                                open={showCreateAbilityDialog && newAbility.type === ability.type} 
-                                onOpenChange={(open) => {
-                                  setShowCreateAbilityDialog(open);
-                                  if (open) setNewAbility({...newAbility, type: ability.type});
-                                }}
-                              >
-                                <DialogTrigger asChild>
-                                  <button className="text-xs text-[#3C5E5C] hover:text-[#2A4A48] flex items-center px-2 py-1 border border-[#3C5E5C] rounded">
-                                    <PlusIcon size={12} className="mr-1" />
-                                    <span>添加</span>
-                                  </button>
-                                </DialogTrigger>
-                                <DialogContent className="sm:max-w-[800px]">
-                                  <DialogHeader>
-                                    <DialogTitle>创建{ability.type}能力项</DialogTitle>
-                                  </DialogHeader>
-                                  <div className="space-y-4 py-4">
-                                    <div className="grid grid-cols-2 gap-4">
-                                      <div className="space-y-2">
-                                        <label className="text-sm font-medium">能力编码</label>
-                                        <Input
-                                          name="code"
-                                          value={newAbility.code || ""}
-                                          onChange={(e) => setNewAbility({...newAbility, code: e.target.value})}
-                                          placeholder="如 K001（知识类）"
-                                        />
-                    </div>
-                                      <div className="space-y-2">
-                                        <label className="text-sm font-medium">能力名称</label>
-                                        <Input
-                                          name="name"
-                                          value={newAbility.name}
-                                          onChange={handleAbilityChange}
-                                          placeholder="如 财务报表分析"
-                                        />
-                    </div>
-                  </div>
-                                    <div className="grid grid-cols-2 gap-4">
-                                      <div className="space-y-2">
-                                        <label className="text-sm font-medium">能力类型</label>
-                                        <Input
-                                          name="type"
-                                          value={newAbility.type === "知识技能" ? "知识技能类" : "素质类"}
-                                          disabled
-                                          className="bg-gray-50"
-                                        />
-                                      </div>
-                                      <div className="space-y-2">
-                                        <label className="text-sm font-medium">能力等级</label>
-                                        <Select 
-                                          value={newAbility.level || ""} 
-                                          onValueChange={(value) => setNewAbility({...newAbility, level: value})}
-                                        >
-                                          <SelectTrigger className="w-full">
-                                            <SelectValue placeholder="请选择等级" />
-                                          </SelectTrigger>
-                                          <SelectContent>
-                                            <SelectItem value="T1">T1</SelectItem>
-                                            <SelectItem value="T2">T2</SelectItem>
-                                            <SelectItem value="T3">T3</SelectItem>
-                                            <SelectItem value="T4">T4</SelectItem>
-                                            <SelectItem value="T5">T5</SelectItem>
-                                            <SelectItem value="T6">T6</SelectItem>
-                                            <SelectItem value="T7">T7</SelectItem>
-                                          </SelectContent>
-                                        </Select>
-                                      </div>
-                                    </div>
-                                    <div className="space-y-2">
-                                      <label className="text-sm font-medium">能力描述</label>
-                                      <Textarea
-                                        name="description"
-                                        value={newAbility.description}
-                                        onChange={handleAbilityChange}
-                                        placeholder="如 能运用Python完成数据清洗和可视化分析"
-                                        className="min-h-[100px]"
-                                      />
-                                    </div>
-                                    <div className="space-y-2">
-                                      <label className="text-sm font-medium">适用岗位</label>
-                                      <Input
-                                        name="positions"
-                                        value={newAbility.positions || ""}
-                                        onChange={(e) => setNewAbility({...newAbility, positions: e.target.value})}
-                                        placeholder="如 财务岗（多个岗位用逗号分隔）"
-                                      />
-                                    </div>
-                                  </div>
-                                  <div className="flex justify-end space-x-2">
-                                    <Button variant="outline" onClick={() => setShowCreateAbilityDialog(false)}>取消</Button>
-                                    <Button onClick={() => {
-                                      handleCreateAbilityItem(ability.id);
-                                      setShowCreateAbilityDialog(false);
-                                    }}>确认</Button>
-                                  </div>
-                                </DialogContent>
-                              </Dialog>
-                            </div>
-                          </div>
-                          
-                          <div className="space-y-1 p-2">
-                            {ability.skillItems && ability.skillItems.map((item) => (
-                              <div 
-                                key={item.id} 
-                                className={`text-sm text-gray-600 p-2 rounded cursor-pointer transition-colors border ${
-                                  selectedKnowledgeSkill?.id === item.id 
-                                    ? 'border-[#3C5E5C] bg-[#3C5E5C]/5' 
-                                    : 'border-gray-100 hover:bg-gray-50'
-                                }`}
-                                onClick={() => setSelectedKnowledgeSkill(item)}
-                              >
-                                <div className="flex justify-between items-center">
-                                  <div className="flex items-center flex-grow">
-                                    <input
-                                      type="checkbox"
-                                      className="mr-2 h-4 w-4 rounded border-gray-300 text-[#3C5E5C] focus:ring-[#3C5E5C]"
-                                      checked={selectedItems.includes(item.id)}
-                                      onChange={(e) => {
-                                        if (e.target.checked) {
-                                          setSelectedItems([...selectedItems, item.id]);
-                                        } else {
-                                          setSelectedItems(selectedItems.filter(id => id !== item.id));
-                                        }
-                                        e.stopPropagation();
-                                      }}
-                                      onClick={(e) => e.stopPropagation()}
-                                    />
-                                    <div className="truncate">
-                                      <span>{item.name}</span>
-                                      <span className="mx-1 text-xs text-gray-400">({item.code})</span>
-                                    </div>
-                                  </div>
-                                  <span className="px-1.5 py-0.5 text-xs rounded-full bg-gray-100 text-gray-700">
-                                    {item.level}
-                                  </span>
+                  <div className="flex space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-xs h-7"
+                      onClick={() => {
+                        setNewAbility({
+                          name: "",
+                          description: "",
+                          type: ability.type,
+                          code: "",
+                          level: "",
+                          positions: ""
+                        });
+                        setUploadAbilityId(ability.id);
+                        setShowUploadDialog(true);
+                      }}
+                    >
+                      批量导入
+                    </Button>
+                    
+                    <Button
+                      className="bg-[#3C5E5C] hover:bg-[#2A4A48] text-white text-xs px-3 py-1 h-8 rounded-md"
+                      onClick={() => {
+                        setNewAbility({
+                          name: "",
+                          description: "",
+                          type: ability.type,
+                          code: "",
+                          level: "",
+                          positions: ""
+                        });
+                        setSelectedAbilityId(ability.id);
+                        if (ability.type === "知识技能") {
+                          setShowCreateKnowledgeDialog(true);
+                        } else if (ability.type === "素质") {
+                          setCurrentQualityTab("专业素质");
+                          setShowCreateProfessionalDialog(true);
+                        }
+                      }}
+                    >
+                      <PlusIcon size={14} className="mr-1" />
+                      添加{ability.type === "知识技能" ? "技能" : "素质"}
+                    </Button>
                                 </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                        
-                        {/* 右侧：详细内容 - 修改为与添加表单一致的结构 */}
-                        <div className="w-2/3 p-6 overflow-y-auto">
-                          {selectedKnowledgeSkill ? (
-                            <div className="space-y-4">
-                    <div className="flex justify-between items-start">
-                                <h3 className="text-lg font-semibold text-gray-800">能力项详情</h3>
-                                <div className="flex items-center">
-                                  {isEditing ? (
-                                    <button 
-                                      className="text-xs text-[#3C5E5C] hover:text-[#2A4A48] flex items-center px-2 py-1 border border-[#3C5E5C] rounded"
-                                      onClick={handleSaveEdit}
-                                    >
-                                      <CheckIcon size={12} className="mr-1" />
-                                      <span>完成</span>
-                                    </button>
-                                  ) : (
-                                    <button 
-                                      className="text-xs text-[#3C5E5C] hover:text-[#2A4A48] flex items-center px-2 py-1 border border-[#3C5E5C] rounded"
-                                      onClick={() => {
-                                        setIsEditing(true);
-                                        setEditingSkill({...selectedKnowledgeSkill});
-                                      }}
-                                    >
-                                      <EditIcon size={12} className="mr-1" />
-                                      <span>编辑</span>
-                                    </button>
-                                  )}
-                                </div>
-                              </div>
-                              
-                              <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                  <label className="text-sm font-medium">能力编码</label>
-                                  <Input
-                                    value={isEditing ? editingSkill?.code : selectedKnowledgeSkill.code}
-                                    readOnly={!isEditing}
-                                    onChange={(e) => setEditingSkill({...editingSkill!, code: e.target.value})}
-                                    className={isEditing ? "bg-white" : "bg-gray-50"}
-                                  />
-                                </div>
-                                <div className="space-y-2">
-                                  <label className="text-sm font-medium">能力名称</label>
-                                  <Input
-                                    value={isEditing ? editingSkill?.name : selectedKnowledgeSkill.name}
-                                    readOnly={!isEditing}
-                                    onChange={(e) => setEditingSkill({...editingSkill!, name: e.target.value})}
-                                    className={isEditing ? "bg-white" : "bg-gray-50"}
-                                  />
-                                </div>
-                              </div>
-                              
-                              <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                  <label className="text-sm font-medium">能力类型</label>
-                                  <Input
-                                    value="知识技能类"
-                                    readOnly
-                                    className="bg-gray-50"
-                                  />
-                                </div>
-                                <div className="space-y-2">
-                                  <label className="text-sm font-medium">能力等级</label>
-                                  {isEditing ? (
-                                    <Select 
-                                      value={editingSkill?.level || ""} 
-                                      onValueChange={(value) => setEditingSkill({...editingSkill!, level: value})}
-                                    >
-                                      <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="请选择等级" />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        <SelectItem value="T1">T1</SelectItem>
-                                        <SelectItem value="T2">T2</SelectItem>
-                                        <SelectItem value="T3">T3</SelectItem>
-                                        <SelectItem value="T4">T4</SelectItem>
-                                        <SelectItem value="T5">T5</SelectItem>
-                                        <SelectItem value="T6">T6</SelectItem>
-                                        <SelectItem value="T7">T7</SelectItem>
-                                      </SelectContent>
-                                    </Select>
-                                  ) : (
-                                    <Input
-                                      value={selectedKnowledgeSkill.level}
-                                      readOnly
-                                      className="bg-gray-50"
-                                    />
-                                  )}
-                                </div>
-                              </div>
-                              
-                              <div className="space-y-2">
-                                <label className="text-sm font-medium">能力描述</label>
-                                <Textarea
-                                  value={isEditing ? editingSkill?.description : selectedKnowledgeSkill.description}
-                                  readOnly={!isEditing}
-                                  onChange={(e) => setEditingSkill({...editingSkill!, description: e.target.value})}
-                                  className={`min-h-[100px] ${isEditing ? "bg-white" : "bg-gray-50"}`}
-                                />
-                              </div>
-                              
-                              <div className="space-y-2">
-                                <label className="text-sm font-medium">适用岗位</label>
-                                <Input
-                                  value={isEditing ? 
-                                    (typeof editingSkill?.positions === 'string' ? 
-                                      editingSkill.positions : 
-                                      editingSkill?.positions.join(', ')) : 
-                                    selectedKnowledgeSkill.positions.join(', ')}
-                                  readOnly={!isEditing}
-                                  onChange={(e) => setEditingSkill({
-                                    ...editingSkill!, 
-                                    positions: e.target.value.split(',').map(p => p.trim())
-                                  })}
-                                  className={isEditing ? "bg-white" : "bg-gray-50"}
-                                />
-                              </div>
-                              
-                              <div className="space-y-2">
-                                <label className="text-sm font-medium">创建时间</label>
-                                <Input
-                                  value={selectedKnowledgeSkill.createdAt}
-                                  readOnly
-                                  className="bg-gray-50"
-                                />
-                              </div>
-                              
-                              <div className="mt-6">
-                                <label className="text-sm font-medium">能力发展路径</label>
-                                <div className="relative mt-2 p-4 bg-gray-50 rounded-md">
-                                  <div className="flex justify-between mb-2">
-                                    {['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'].map((level) => (
-                                      <div key={level} className="text-center">
-                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center mx-auto text-xs ${
-                                          (isEditing ? editingSkill?.level : selectedKnowledgeSkill.level) === level 
-                                            ? 'bg-[#3C5E5C] text-white' 
-                                            : 'bg-gray-200 text-gray-700'
-                                        }`}>{level}</div>
-                                      </div>
+                </CardHeader>
+                <CardContent className="p-6">
+                  {/* 标签筛选 - 仅素质类显示标签 */}
+                  {ability.type === "素质" && ability.tags && ability.tags.length > 0 && (
+                    <div className="mb-4">
+                      <div className="flex space-x-2 mb-2">
+                        {ability.tags.map(tag => (
+                          <Button
+                            key={tag}
+                            variant={currentQualityTab === tag ? "default" : "outline"}
+                            size="sm"
+                            className={`text-xs h-7 ${currentQualityTab === tag ? 'bg-[#3C5E5C] hover:bg-[#2A4A48]' : ''}`}
+                            onClick={() => setCurrentQualityTab(tag)}
+                          >
+                            {tag}
+                          </Button>
                                     ))}
                                   </div>
-                                  <div className="absolute top-8 left-8 right-8 h-0.5 bg-gray-300 -z-10"></div>
-                                </div>
-                              </div>
-                            </div>
-                          ) : (
-                            <div className="h-full flex items-center justify-center">
-                              <div className="text-center">
-                                <svg 
-                                  xmlns="http://www.w3.org/2000/svg" 
-                                  className="h-12 w-12 mx-auto text-gray-300 mb-4" 
-                                  fill="none" 
-                                  viewBox="0 0 24 24" 
-                                  stroke="currentColor"
-                                >
-                                  <path 
-                                    strokeLinecap="round" 
-                                    strokeLinejoin="round" 
-                                    strokeWidth={1.5} 
-                                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" 
-                                  />
-                                </svg>
-                                <p className="text-gray-500">从左侧选择一个能力项查看详情</p>
-                              </div>
+                      <div className="h-px bg-gray-200"></div>
                             </div>
                           )}
-                        </div>
-                      </div>
-                      
-                      <div className="border-t border-gray-100 p-3">
-                        <div className="flex justify-between mt-1 text-xs text-gray-500">
-                      <div>
-                            <span>共{ability.count}项能力</span>
-                      </div>
-                          <div className="flex items-center space-x-2">
-                            <button 
-                              className="text-xs text-[#3C5E5C] hover:text-[#2A4A48] flex items-center px-2 py-1 border border-[#3C5E5C] rounded"
-                              onClick={() => {
-                                setUploadAbilityId(ability.id);
-                                setShowUploadDialog(true);
-                              }}
-                            >
-                              <span>上传</span>
-                            </button>
-                            <button 
-                              className="text-xs text-[#3C5E5C] hover:text-[#2A4A48] flex items-center px-2 py-1 border border-[#3C5E5C] rounded"
-                              onClick={() => handleDownloadTemplate("知识技能类")}
-                            >
-                              下载模板
-                      </button>
-                    </div>
-                    </div>
-                  </div>
-                    </div>
-                  ))}
-
-                  {/* 素质类卡片 - 添加内嵌标签页 */}
-                  {abilities.filter(ability => ability.type === "素质").map((ability) => (
-                    <div key={ability.id} className="rounded-lg border border-gray-200 p-4 bg-white transition-shadow flex flex-col">
-                      <div className="flex justify-between items-start mb-4">
-                      <div>
-                          <h3 className="font-semibold text-sm text-gray-800 mb-2">{ability.name}</h3>
-                          <p className="text-sm text-gray-600 mb-3">{ability.description}</p>
-                      </div>
-                      </div>
-
-                      {/* 素质类内嵌标签页 */}
-                      <Tabs 
-                        defaultValue="professional" 
-                        className="w-full mt-2"
-                        onValueChange={(value) => setCurrentQualityTab(value)}
-                      >
-                        <TabsList className="w-full flex justify-start space-x-2 bg-gray-50 p-1 rounded">
-                          <TabsTrigger 
-                            value="professional" 
-                            className="flex-1 data-[state=active]:bg-[#f8fbfc] data-[state=active]:shadow-sm text-xs py-1.5"
-                          >
-                            专业素质
-                          </TabsTrigger>
-                          <TabsTrigger 
-                            value="leadership" 
-                            className="flex-1 data-[state=active]:bg-[#f8fbfc] data-[state=active]:shadow-sm text-xs py-1.5"
-                          >
-                            领导力素质
-                          </TabsTrigger>
-                          <TabsTrigger 
-                            value="general" 
-                            className="flex-1 data-[state=active]:bg-[#f8fbfc] data-[state=active]:shadow-sm text-xs py-1.5"
-                          >
-                            通用素质
-                          </TabsTrigger>
-                        </TabsList>
-                        
-                        {/* 专业素质标签内容 */}
-                        <TabsContent value="professional" className="mt-4">
-                          {ability.skillItems && ability.skillItems.filter(item => item.code?.startsWith('F-PRO')).length > 0 ? (
-                            <div className="space-y-2">
-                              <div className="flex justify-end mb-2">
-                                <div className="flex items-center space-x-2">
-                                  <span className="text-xs text-gray-500">全选</span>
+                  
+                  {/* 技能项表格 */}
+                  {ability.skillItems && ability.skillItems.length > 0 ? (
+                    <div className="border border-gray-200 rounded-md overflow-hidden">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12">
                                   <input
                                     type="checkbox"
-                                    className="h-4 w-4 rounded border-gray-300 text-[#3C5E5C] focus:ring-[#3C5E5C]"
-                                    checked={ability.skillItems?.filter(item => item.code?.startsWith('F-PRO')).every(item => selectedItems.includes(item.id)) || false}
-                                    onChange={(e) => toggleSelectAll(ability, 'F-PRO', e.target.checked)}
-                                  />
-                                  {selectedItems.length > 0 && (
-                                    <button 
-                                      className="text-xs text-red-600 hover:text-red-800 ml-2"
-                                      onClick={() => handleBatchDelete(ability)}
-                                    >
-                                      删除
-                      </button>
-                                  )}
-                    </div>
-                    </div>
-                              <div className="grid grid-cols-3 gap-2">
-                                {ability.skillItems?.filter(item => item.code?.startsWith('F-PRO')).slice(0, 6).map((item) => (
-                                  <div 
-                                    key={item.id} 
-                                    className="text-sm text-gray-600 hover:bg-gray-50 p-2 rounded cursor-pointer transition-colors border border-gray-100"
-                                  >
-                                    <div className="flex justify-between items-center">
-                                      <div className="flex items-center flex-grow" onClick={() => openItemDetail(item)}>
-                                        <input
-                                          type="checkbox"
-                                          className="mr-2 h-4 w-4 rounded border-gray-300 text-[#3C5E5C] focus:ring-[#3C5E5C]"
-                                          checked={selectedItems.includes(item.id)}
-                                          onChange={(e) => {
-                                            if (e.target.checked) {
-                                              setSelectedItems([...selectedItems, item.id]);
-                                            } else {
-                                              setSelectedItems(selectedItems.filter(id => id !== item.id));
-                                            }
-                                            e.stopPropagation();
-                                          }}
-                                          onClick={(e) => e.stopPropagation()}
-                                        />
-                                        <div className="truncate">
-                                          <span>{item.name}</span>
-                                          <span className="mx-1 text-xs text-gray-400">({item.code})</span>
-                                          <span className="text-gray-500">{item.level}</span>
-                  </div>
-                                      </div>
-                                      <button 
-                                        className="text-gray-400 hover:text-red-600 ml-2"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          setItemToDelete(item);
-                                          setSelectedAbilityId(ability.id);
-                                          setShowDeleteConfirmDialog(true);
-                                        }}
-                                      >
-                                        <XIcon size={14} />
-                                      </button>
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                              {ability.skillItems.filter(item => item.code?.startsWith('F-PRO')).length > 6 && (
-                                <div className="text-sm text-[#3C5E5C] mt-2 text-right">
-                                  更多 {ability.skillItems.filter(item => item.code?.startsWith('F-PRO')).length - 6} 项...
-                                </div>
-                              )}
-                            </div>
-                          ) : (
-                            <div className="text-center py-6">
-                              <p className="text-sm text-gray-500 mb-4">暂无专业素质能力项</p>
-                            </div>
-                          )}
-                        </TabsContent>
-                        
-                        {/* 领导力素质标签内容 */}
-                        <TabsContent value="leadership" className="mt-4">
-                          {ability.skillItems && ability.skillItems.filter(item => item.code?.startsWith('L-LEAD')).length > 0 ? (
-                            <div className="space-y-2">
-                              <div className="flex justify-end mb-2">
-                                <div className="flex items-center space-x-2">
-                                  <span className="text-xs text-gray-500">全选</span>
-                                  <input
-                                    type="checkbox"
-                                    className="h-4 w-4 rounded border-gray-300 text-[#3C5E5C] focus:ring-[#3C5E5C]"
-                                    checked={ability.skillItems?.filter(item => item.code?.startsWith('L-LEAD')).every(item => selectedItems.includes(item.id)) || false}
-                                    onChange={(e) => toggleSelectAll(ability, 'L-LEAD', e.target.checked)}
-                                  />
-                                  {selectedItems.length > 0 && (
-                                    <button 
-                                      className="text-xs text-red-600 hover:text-red-800 ml-2"
-                                      onClick={() => handleBatchDelete(ability)}
-                                    >
-                                      删除
-                                    </button>
-                                  )}
-                                </div>
-                              </div>
-                              <div className="grid grid-cols-3 gap-2">
-                                {ability.skillItems?.filter(item => item.code?.startsWith('L-LEAD')).slice(0, 6).map((item) => (
-                                  <div 
-                                    key={item.id} 
-                                    className="text-sm text-gray-600 hover:bg-gray-50 p-2 rounded cursor-pointer transition-colors border border-gray-100"
-                                  >
-                                    <div className="flex justify-between items-center">
-                                      <div className="flex items-center flex-grow" onClick={() => openItemDetail(item)}>
-                                        <input
-                                          type="checkbox"
-                                          className="mr-2 h-4 w-4 rounded border-gray-300 text-[#3C5E5C] focus:ring-[#3C5E5C]"
-                                          checked={selectedItems.includes(item.id)}
-                                          onChange={(e) => {
-                                            if (e.target.checked) {
-                                              setSelectedItems([...selectedItems, item.id]);
-                                            } else {
-                                              setSelectedItems(selectedItems.filter(id => id !== item.id));
-                                            }
-                                            e.stopPropagation();
-                                          }}
-                                          onClick={(e) => e.stopPropagation()}
-                                        />
-                                        <div className="truncate">
-                                          <span>{item.name}</span>
-                                          <span className="mx-1 text-xs text-gray-400">({item.code})</span>
-                                          <span className="text-gray-500">{item.level}</span>
-                                        </div>
-                                      </div>
-                                      <button 
-                                        className="text-gray-400 hover:text-red-600 ml-2"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          setItemToDelete(item);
-                                          setSelectedAbilityId(ability.id);
-                                          setShowDeleteConfirmDialog(true);
-                                        }}
-                                      >
-                                        <XIcon size={14} />
-                                      </button>
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                              {ability.skillItems.filter(item => item.code?.startsWith('L-LEAD')).length > 6 && (
-                                <div className="text-sm text-[#3C5E5C] mt-2 text-right">
-                                  更多 {ability.skillItems.filter(item => item.code?.startsWith('L-LEAD')).length - 6} 项...
-                                </div>
-                              )}
-                            </div>
-                          ) : (
-                            <div className="text-center py-6">
-                              <p className="text-sm text-gray-500 mb-4">暂无领导力素质能力项</p>
-                            </div>
-                          )}
-                        </TabsContent>
-                        
-                        {/* 通用素质标签内容 */}
-                        <TabsContent value="general" className="mt-4">
-                          {ability.skillItems && ability.skillItems.filter(item => item.code?.startsWith('G-COM')).length > 0 ? (
-                            <div className="space-y-2">
-                              <div className="flex justify-end mb-2">
-                                <div className="flex items-center space-x-2">
-                                  <span className="text-xs text-gray-500">全选</span>
-                                  <input
-                                    type="checkbox"
-                                    className="h-4 w-4 rounded border-gray-300 text-[#3C5E5C] focus:ring-[#3C5E5C]"
-                                    checked={ability.skillItems?.filter(item => item.code?.startsWith('G-COM')).every(item => selectedItems.includes(item.id)) || false}
-                                    onChange={(e) => toggleSelectAll(ability, 'G-COM', e.target.checked)}
-                                  />
-                                  {selectedItems.length > 0 && (
-                                    <button 
-                                      className="text-xs text-red-600 hover:text-red-800 ml-2"
-                                      onClick={() => handleBatchDelete(ability)}
-                                    >
-                                      删除
-                                    </button>
-                                  )}
-                                </div>
-                              </div>
-                              <div className="grid grid-cols-3 gap-2">
-                                {ability.skillItems?.filter(item => item.code?.startsWith('G-COM')).slice(0, 6).map((item) => (
-                                  <div 
-                                    key={item.id} 
-                                    className="text-sm text-gray-600 hover:bg-gray-50 p-2 rounded cursor-pointer transition-colors border border-gray-100"
-                                  >
-                                    <div className="flex justify-between items-center">
-                                      <div className="flex items-center flex-grow" onClick={() => openItemDetail(item)}>
-                                        <input
-                                          type="checkbox"
-                                          className="mr-2 h-4 w-4 rounded border-gray-300 text-[#3C5E5C] focus:ring-[#3C5E5C]"
-                                          checked={selectedItems.includes(item.id)}
-                                          onChange={(e) => {
-                                            if (e.target.checked) {
-                                              setSelectedItems([...selectedItems, item.id]);
-                                            } else {
-                                              setSelectedItems(selectedItems.filter(id => id !== item.id));
-                                            }
-                                            e.stopPropagation();
-                                          }}
-                                          onClick={(e) => e.stopPropagation()}
-                                        />
-                                        <div className="truncate">
-                                          <span>{item.name}</span>
-                                          <span className="mx-1 text-xs text-gray-400">({item.code})</span>
-                                          <span className="text-gray-500">{item.level}</span>
-                                        </div>
-                                      </div>
-                                      <button 
-                                        className="text-gray-400 hover:text-red-600 ml-2"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          setItemToDelete(item);
-                                          setSelectedAbilityId(ability.id);
-                                          setShowDeleteConfirmDialog(true);
-                                        }}
-                                      >
-                                        <XIcon size={14} />
-                                      </button>
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                              {ability.skillItems.filter(item => item.code?.startsWith('G-COM')).length > 6 && (
-                                <div className="text-sm text-[#3C5E5C] mt-2 text-right">
-                                  更多 {ability.skillItems.filter(item => item.code?.startsWith('G-COM')).length - 6} 项...
-                                </div>
-                              )}
-                            </div>
-                          ) : (
-                            <div className="text-center py-6">
-                              <p className="text-sm text-gray-500 mb-4">暂无通用素质能力项</p>
-                            </div>
-                          )}
-                        </TabsContent>
-                      </Tabs>
-
-                      <div className="border-t border-gray-100 pt-3 mt-3">
-                        <div className="flex justify-between mt-1 text-xs text-gray-500">
-                          <div className="flex items-center space-x-2">
-                            <span>
-                              共
-                              {currentQualityTab === "professional" 
-                                ? ability.skillItems?.filter(item => item.code?.startsWith('F-PRO')).length || 0 
-                                : currentQualityTab === "leadership"
-                                  ? ability.skillItems?.filter(item => item.code?.startsWith('L-LEAD')).length || 0
-                                  : ability.skillItems?.filter(item => item.code?.startsWith('G-COM')).length || 0
+                                className="rounded border-gray-300 text-[#3C5E5C] focus:ring-[#3C5E5C]"
+                                onChange={(e) => {
+                                  // 根据能力类型确定前缀
+                                  const prefix = ability.type === "知识技能" ? "K" : 
+                                    currentQualityTab === "专业素质" ? "F-PRO" : 
+                                    currentQualityTab === "领导力素质" ? "L-LEAD" : "G-COM";
+                                  toggleSelectAll(ability, prefix, e.target.checked);
+                                }}
+                              />
+                            </th>
+                            <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              编码
+                            </th>
+                            <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              名称
+                            </th>
+                            <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              等级
+                            </th>
+                            <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              适用岗位
+                            </th>
+                            <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              操作
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {ability.skillItems
+                            .filter(item => {
+                              // 如果是素质类，根据当前选中的标签筛选
+                              if (ability.type === "素质") {
+                                if (currentQualityTab === "专业素质" && item.code?.startsWith("F-PRO")) return true;
+                                if (currentQualityTab === "领导力素质" && item.code?.startsWith("L-LEAD")) return true;
+                                if (currentQualityTab === "通用素质" && item.code?.startsWith("G-COM")) return true;
+                                return false;
                               }
-                              项能力
-                            </span>
-                            {currentQualityTab === "professional" && (
-                              <button 
-                                className="text-xs text-[#3C5E5C] hover:text-[#2A4A48] flex items-center ml-2 px-2 py-1 border border-[#3C5E5C] rounded"
-                                onClick={() => setShowCreateProfessionalDialog(true)}
-                              >
-                                <PlusIcon size={12} className="mr-1" />
-                                <span>添加专业素质</span>
-                              </button>
-                            )}
-                            {currentQualityTab === "leadership" && (
-                              <button 
-                                className="text-xs text-[#3C5E5C] hover:text-[#2A4A48] flex items-center ml-2 px-2 py-1 border border-[#3C5E5C] rounded"
-                                onClick={() => setShowCreateLeadershipDialog(true)}
-                              >
-                                <PlusIcon size={12} className="mr-1" />
-                                <span>添加领导力素质</span>
-                              </button>
-                            )}
-                            {currentQualityTab === "general" && (
-                              <button 
-                                className="text-xs text-[#3C5E5C] hover:text-[#2A4A48] flex items-center ml-2 px-2 py-1 border border-[#3C5E5C] rounded"
-                                onClick={() => setShowCreateGeneralDialog(true)}
-                              >
-                                <PlusIcon size={12} className="mr-1" />
-                                <span>添加通用素质</span>
-                              </button>
-                            )}
+                              return true;
+                            })
+                            .map(item => (
+                              <tr key={item.id} className="hover:bg-gray-50">
+                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        <input
+                                          type="checkbox"
+                                    className="rounded border-gray-300 text-[#3C5E5C] focus:ring-[#3C5E5C]"
+                                          checked={selectedItems.includes(item.id)}
+                                          onChange={(e) => {
+                                            if (e.target.checked) {
+                                              setSelectedItems([...selectedItems, item.id]);
+                                            } else {
+                                              setSelectedItems(selectedItems.filter(id => id !== item.id));
+                                            }
+                                    }}
+                                  />
+                                </td>
+                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                                  {item.code}
+                                </td>
+                                <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                  {item.name}
+                                </td>
+                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                                  {item.level}
+                                </td>
+                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                                  <div className="flex flex-wrap gap-1">
+                                    {item.positions.map((position, index) => (
+                                      <span 
+                                        key={index} 
+                                        className="px-2 py-0.5 bg-gray-100 text-gray-700 text-xs rounded-full"
+                                      >
+                                        {position}
+                                      </span>
+                                    ))}
+                  </div>
+                                </td>
+                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                                  <div className="flex space-x-3">
+                                    <Button 
+                                      variant="ghost" 
+                                      size="sm" 
+                                      className="text-xs h-7"
+                                      onClick={() => {
+                                        openItemDetail(item);
+                                      }}
+                                    >
+                                      查看
+                                    </Button>
+                                    <Button 
+                                      variant="ghost" 
+                                      size="sm" 
+                                      className="text-xs h-7 text-red-600"
+                                      onClick={() => {
+                                          setItemToDelete(item);
+                                          setSelectedAbilityId(ability.id);
+                                          setShowDeleteConfirmDialog(true);
+                                        }}
+                                      >
+                                      删除
+                                    </Button>
+                                    </div>
+                                </td>
+                              </tr>
+                            ))}
+                        </tbody>
+                      </table>
+                            </div>
+                          ) : (
+                    <div className="text-center py-10">
+                      <p className="text-gray-500 mb-4">暂无{ability.type}数据</p>
+                      <Button
+                        className="bg-[#3C5E5C] hover:bg-[#2A4A48] text-white text-xs px-3 py-1 h-8 rounded-md"
+                        onClick={() => {
+                          setNewAbility({
+                            name: "",
+                            description: "",
+                            type: ability.type,
+                            code: "",
+                            level: "",
+                            positions: ""
+                          });
+                          setSelectedAbilityId(ability.id);
+                          if (ability.type === "知识技能") {
+                            setShowCreateKnowledgeDialog(true);
+                          } else if (ability.type === "素质") {
+                            setCurrentQualityTab("专业素质");
+                            setShowCreateProfessionalDialog(true);
+                          }
+                        }}
+                      >
+                        <PlusIcon size={14} className="mr-1" />
+                        添加{ability.type === "知识技能" ? "技能" : "素质"}
+                      </Button>
+                                </div>
+                              )}
+                  
+                  {/* 批量操作按钮 */}
+                                  {selectedItems.length > 0 && (
+                    <div className="mt-4 flex justify-end">
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        className="text-xs h-7"
+                                      onClick={() => handleBatchDelete(ability)}
+                                    >
+                        批量删除 ({selectedItems.length})
+                      </Button>
+                                </div>
+                              )}
+                </CardContent>
+              </Card>
+            ))}
+            
+            {/* 添加能力库卡片 */}
+            <Card className="shadow-sm border-dashed border-gray-300 bg-white rounded-lg overflow-hidden">
+              <CardContent className="p-6 flex flex-col items-center justify-center min-h-[200px]">
+                <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mb-3">
+                  <PlusIcon size={24} className="text-gray-400" />
                           </div>
-                          <div className="flex items-center space-x-2">
-                            <button 
-                              className="text-xs text-[#3C5E5C] hover:text-[#2A4A48] flex items-center px-2 py-1 border border-[#3C5E5C] rounded"
-                              onClick={() => {
-                                // 根据当前选择的标签页设置下载模板的类型
-                                const templateTypes = {
-                                  professional: "专业素质",
-                                  leadership: "领导力素质",
-                                  general: "通用素质"
-                                };
-                                setTemplateType(templateTypes[currentQualityTab as keyof typeof templateTypes]);
-                                setShowDownloadTemplateDialog(true);
-                              }}
-                            >
-                              下载模板
-                            </button>
-                            <button 
-                              className="text-xs text-[#3C5E5C] hover:text-[#2A4A48] flex items-center px-2 py-1 border border-[#3C5E5C] rounded"
-                              onClick={() => {
-                                // 根据当前选择的标签页下载对应模板
-                                const templateTypes = {
-                                  professional: "专业素质",
-                                  leadership: "领导力素质",
-                                  general: "通用素质"
-                                };
-                                handleDownloadTemplate(templateTypes[currentQualityTab as keyof typeof templateTypes]);
-                              }}
-                            >
-                              下载模板
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <h3 className="text-base font-medium text-gray-700 mb-2">添加新能力库</h3>
+                <p className="text-sm text-gray-500 text-center mb-4 max-w-md">
+                  创建新的能力库类别，如专业技能、管理能力等
+                </p>
+                <Button
+                  className="bg-[#3C5E5C] hover:bg-[#2A4A48] text-white"
+                  onClick={() => setShowCreateAbilityDialog(true)}
+                >
+                  创建能力库
+                </Button>
               </CardContent>
             </Card>
-          </div>
-
-          {/* 岗位模型管理模块 */}
-          <div className="space-y-4">
-            <Card className="shadow-sm border-none bg-white rounded-lg overflow-hidden">
+            
+            {/* 岗位模型卡片 */}
+            <div className="mt-8">
+              <h2 className="text-lg font-semibold mb-4">岗位模型</h2>
+              <div className="grid grid-cols-1 gap-6">
+                {positions.map(position => (
+                  <Card key={position.id} className="shadow-sm border-none bg-white rounded-lg overflow-hidden">
               <CardHeader className="flex flex-row items-center justify-between py-4 px-6 border-b border-gray-100">
-                <CardTitle style={{color: '#3C5E5C'}} className="text-sm font-medium">岗位模型管理</CardTitle>
-                <div className="flex space-x-2">
-                  <Dialog open={showCreatePositionDialog} onOpenChange={setShowCreatePositionDialog}>
-                    <DialogTrigger asChild>
-                  <Button className="bg-[#426966] hover:bg-[#2A4A48] text-white text-xs px-3 py-1 h-8 rounded-md">
-                    <PlusIcon size={14} className="mr-1" />
-                    创建
-                  </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>创建岗位模型</DialogTitle>
-                      </DialogHeader>
-                      <div className="space-y-4 py-4">
-                        <div className="space-y-2">
-                          <label className="text-sm font-medium">岗位模型名称</label>
-                          <Input 
-                            name="name"
-                            value={newPosition.name}
-                            onChange={handlePositionChange}
-                            placeholder="请输入岗位模型名称"
-                          />
-                </div>
-                        <div className="space-y-2">
-                          <label className="text-sm font-medium">岗位模型描述</label>
-                          <Textarea 
-                            name="description"
-                            value={newPosition.description}
-                            onChange={handlePositionChange}
-                            placeholder="请输入岗位模型描述"
-                          />
-                      </div>
-                        <div className="space-y-2">
-                          <label className="text-sm font-medium">岗位类型</label>
-                          <select 
-                            name="type"
-                            value={newPosition.type}
-                            onChange={handlePositionChange}
-                            className="w-full border rounded-md px-3 py-2 text-sm"
-                          >
-                            <option value="技术">技术</option>
-                            <option value="管理">管理</option>
-                            <option value="业务">业务</option>
-                          </select>
-                    </div>
-                    </div>
-                      <div className="flex justify-end space-x-2">
-                        <Button variant="outline" onClick={() => setShowCreatePositionDialog(false)}>取消</Button>
-                        <Button onClick={handleCreatePosition}>创建</Button>
-                  </div>
-                    </DialogContent>
-                  </Dialog>
-                      </div>
-              </CardHeader>
-              <CardContent className="p-6">
-                <div className="grid grid-cols-3 gap-4">
-                  {positions.map((position) => (
-                    <div key={position.id} className="rounded-lg border border-gray-200 p-4 bg-white hover:shadow-md transition-shadow">
-                    <div className="flex justify-between items-start">
                       <div>
-                          <h3 className="font-semibold text-sm text-gray-800 mb-2">{position.name}</h3>
-                          <p className="text-sm text-gray-600 mb-3">{position.description}</p>
+                        <CardTitle style={{color: '#3C5E5C'}} className="text-sm font-medium">{position.name}</CardTitle>
+                        <CardDescription className="text-xs">{position.description}</CardDescription>
                       </div>
-                        <div className="flex space-x-2">
-                      <button className="text-gray-400 hover:text-gray-600">
-                        <EditIcon size={14} />
-                      </button>
-                          <button 
-                            className="text-gray-400 hover:text-red-600"
-                            onClick={() => handleDeletePosition(position.id)}
-                          >
-                            <XIcon size={14} />
-                      </button>
-                        </div>
-                    </div>
-                    <div className="flex justify-between mt-3 text-xs text-gray-500">
-                        <span>共{position.count}个岗位</span>
-                        <span>{position.date}</span>
-                    </div>
-                  </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* 岗位图谱模块 */}
-          <div className="space-y-4">
-            <Card className="shadow-sm border-none bg-white rounded-lg overflow-hidden">
-              <CardHeader className="flex flex-row items-center justify-between py-4 px-6 border-b border-gray-100">
-                <CardTitle style={{color: '#3C5E5C'}} className="text-sm font-medium">岗位图谱</CardTitle>
                 <div className="flex space-x-2">
-                  <Button className="bg-[#426966] hover:bg-[#2A4A48] text-white text-xs px-3 py-1 h-8 rounded-md">
-                    <PlusIcon size={14} className="mr-1" />
-                    创建
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="p-6">
-                <div className="h-[300px] bg-gray-50 rounded-lg flex items-center justify-start p-4 border border-gray-200">
-                  <p className="text-gray-400">岗位图谱展示区域</p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="profile" className="space-y-4 mt-6">
-          {/* 人才履历模块 */}
-          <div className="space-y-4">
-            <Card className="shadow-sm border-none bg-white rounded-lg overflow-hidden">
-              <CardHeader className="flex flex-row items-center justify-between py-4 px-6 border-b border-gray-100">
-                <CardTitle style={{color: '#3C5E5C'}} className="text-sm font-medium">人才履历</CardTitle>
-                <div className="flex space-x-2">
-                  <Button className="bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 text-xs py-1 h-8 rounded-md px-3">
-                    <svg className="w-4 h-4 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
-                    </svg>
-                    点评
-                  </Button>
-                  <Button className="bg-[#3C5E5C] hover:bg-[#2A4A48] text-white text-xs py-1 h-8 rounded-md px-3">
-                    <svg className="w-4 h-4 mr-1" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                    </svg>
-                    编辑信息
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="p-6">
-                <div className="rounded-lg p-6 mb-4 bg-white">
-                  <div className="flex items-start">
-                    <div className="mr-6">
-                      <div className="w-20 h-20 rounded-full overflow-hidden bg-[#f0f5f5] border-2 border-white shadow-sm relative">
-                        <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=300&auto=format&fit=crop&q=60" alt="员工头像" className="w-full h-full object-cover" />
-                        <div className="absolute bottom-0 right-0 w-5 h-5 bg-green-500 rounded-full border-2 border-white"></div>
-                      </div>
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <h3 className="text-xl font-semibold text-gray-800">张三</h3>
-                            <span className="px-3 py-1 bg-[#E5EEEE] text-[#3C5E5C] text-xs font-medium rounded-full flex items-center">
-                              <span className="mr-1 w-2 h-2 rounded-full bg-[#3C5E5C]"></span>
-                              在线
-                            </span>
-                          </div>
-                          <p className="text-gray-500 text-sm mt-1">高级开发工程师</p>
-                        </div>
-                        <Button 
-                          className="bg-white border border-gray-300 text-[#3C5E5C] hover:bg-gray-50 text-xs py-1 h-8 rounded-md px-3"
-                          onClick={() => setShowSpiritRadarModal(true)}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-xs h-7"
                         >
-                          <svg className="w-4 h-4 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <circle cx="12" cy="12" r="10" />
-                            <path d="M12 2L12 22M2 12H22M17 12a5 5 0 1 1-10 0 5 5 0 0 1 10 0z" />
-                          </svg>
-                          远景精神雷达图
+                          查看详情
+                  </Button>
+                        <Button
+                          variant="ghost" 
+                          size="sm" 
+                          className="text-xs h-7 text-red-600"
+                          onClick={() => handleDeletePosition(position.id)}
+                        >
+                          删除
                         </Button>
                       </div>
-                      
-                      <div className="grid grid-cols-3 gap-8 mt-5">
+              </CardHeader>
+              <CardContent className="p-6">
+                      <div className="flex justify-between text-sm">
+                      <div>
+                          <span className="text-gray-500">模型类型：</span>
+                          <span className="text-gray-700">{position.type}</span>
+                      </div>
                         <div>
-                          <p className="text-gray-400 text-xs uppercase tracking-wider">最后登录时间</p>
-                          <p className="text-sm text-gray-800 mt-1">几秒前</p>
+                          <span className="text-gray-500">能力项数量：</span>
+                          <span className="text-gray-700">{position.count}</span>
                         </div>
                         <div>
-                          <p className="text-gray-400 text-xs uppercase tracking-wider">最后活动时间</p>
-                          <p className="text-sm text-gray-800 mt-1">2天前</p>
-                        </div>
-                        <div>
-                          <p className="text-gray-400 text-xs uppercase tracking-wider">员工ID</p>
-                          <p className="text-sm text-gray-800 mt-1">#EMP07</p>
-                        </div>
-                      </div>
-
-                      <div className="mt-5">
-                        <p className="text-gray-500 text-xs mb-2">职业发展阶段</p>
-                        <div className="flex items-center">
-                          <div className="flex-1 relative">
-                            <div className="h-2 bg-gray-200 rounded-full">
-                              <div className="absolute top-0 left-0 h-2 bg-[#3C5E5C] rounded-full w-2/5"></div>
-                            </div>
-                            <div className="flex justify-between mt-2 text-xs">
-                              <div className="text-gray-500">入职</div>
-                              <div className="text-[#3C5E5C] font-medium -ml-3">胜任</div>
-                              <div className="text-gray-500">精通</div>
-                              <div className="text-gray-500">专家</div>
-                              <div className="text-gray-500">领导者</div>
-                            </div>
-                          </div>
-                          <div className="ml-4 px-3 py-1 rounded-md bg-[#3C5E5C] text-white text-xs">
-                            40%
-                          </div>
-                        </div>
-                      </div>
+                          <span className="text-gray-500">创建时间：</span>
+                          <span className="text-gray-700">{formatDate(position.date)}</span>
                     </div>
-                  </div>
-
-                  <div className="flex gap-4 mt-8 mb-6">
-                    <Button variant="ghost" className="flex-1 py-2 border rounded-md text-gray-700 bg-white hover:bg-gray-50 font-medium">
-                      <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
-                        <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
-                      </svg>
-                      个人信息
-                    </Button>
-                    <Button variant="ghost" className="flex-1 py-2 border rounded-md text-gray-700 bg-white hover:bg-gray-50 font-medium">
-                      <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                      </svg>
-                      能力评估
-                    </Button>
-                    <Button variant="ghost" className="flex-1 py-2 border rounded-md text-gray-700 bg-white hover:bg-gray-50 font-medium">
-                      <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
-                        <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
-                      </svg>
-                      工作履历
-                    </Button>
-                    <Button variant="ghost" className="flex-1 py-2 border rounded-md text-gray-700 bg-white hover:bg-gray-50 font-medium">
-                      <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M12 20v-6M6 20V10M18 20V4"></path>
-                      </svg>
-                      绩效信息
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="rounded-lg p-6 mb-4 bg-white border-t border-gray-200 mt-2">
-                  <h3 style={{color: '#3C5E5C'}} className="text-sm font-medium mb-4">个人履历详情</h3>
-                  <div className="grid grid-cols-2 gap-6">
-                    <div className="space-y-6">
-                      <div>
-                        <p className="text-gray-500 text-xs mb-2 uppercase tracking-wider">教育背景</p>
-                        <div className="space-y-3">
-                          <div>
-                            <p className="text-sm font-medium text-gray-800">计算机科学与技术 - 硕士</p>
-                            <p className="text-sm text-gray-500">清华大学 (2014 - 2017)</p>
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium text-gray-800">软件工程 - 学士</p>
-                            <p className="text-sm text-gray-500">北京大学 (2010 - 2014)</p>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div>
-                        <p className="text-gray-500 text-xs mb-2 uppercase tracking-wider">专业证书</p>
-                        <div className="space-y-3">
-                          <div>
-                            <p className="text-sm font-medium text-gray-800">高级系统架构师认证</p>
-                            <p className="text-sm text-gray-500">2022年获得</p>
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium text-gray-800">项目管理专业认证(PMP)</p>
-                            <p className="text-sm text-gray-500">2020年获得</p>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div>
-                        <p className="text-gray-500 text-xs mb-2 uppercase tracking-wider">员工潜力</p>
-                        <div className="flex items-center mt-1">
-                          <div className="w-32 mr-3">
-                            <div className="bg-gray-200 h-2 rounded-full relative">
-                              <div className="absolute top-0 left-0 h-2 bg-[#3C5E5C] rounded-full w-[85%]"></div>
-                            </div>
-                          </div>
-                          <span className="text-sm font-medium text-[#3C5E5C]">高潜力人才</span>
-                          <span className="ml-2 px-2 py-0.5 bg-[#E5EEEE] text-[#3C5E5C] text-xs rounded">85%</span>
-                        </div>
-                        <p className="text-xs text-gray-500 mt-2">推荐晋升路径：技术专家 → 架构师 → 技术总监</p>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-6">
-                      <div>
-                        <p className="text-gray-500 text-xs mb-2 uppercase tracking-wider">工作经历</p>
-                        <div className="space-y-3">
-                          <div className="border-l-2 border-[#3C5E5C] pl-3 py-1">
-                            <p className="text-sm font-medium text-gray-800">高级开发工程师</p>
-                            <p className="text-sm text-gray-500">本公司 (2020 - 至今)</p>
-                          </div>
-                          <div className="border-l-2 border-gray-300 pl-3 py-1">
-                            <p className="text-sm font-medium text-gray-800">开发工程师</p>
-                            <p className="text-sm text-gray-500">某科技公司 (2017 - 2020)</p>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div>
-                        <p className="text-gray-500 text-xs mb-2 uppercase tracking-wider">职位详情</p>
-                        <div className="p-3 border border-gray-200 rounded-lg bg-gray-50">
-                          <div className="grid grid-cols-2 gap-2">
-                            <div>
-                              <p className="text-xs text-gray-500">职级</p>
-                              <p className="text-sm font-medium text-gray-800">P6</p>
-                            </div>
-                            <div>
-                              <p className="text-xs text-gray-500">直接上级</p>
-                              <p className="text-sm font-medium text-gray-800">李四（技术总监）</p>
-                            </div>
-                            <div className="col-span-2">
-                              <p className="text-xs text-gray-500">汇报关系</p>
-                              <p className="text-sm font-medium text-gray-800">研发部 → 产品技术中心</p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div>
-                        <p className="text-gray-500 text-xs mb-2 uppercase tracking-wider">专业技能</p>
-                        <div className="flex flex-wrap gap-2">
-                          <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium">React</span>
-                          <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium">Node.js</span>
-                          <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium">微服务架构</span>
-                          <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium">云原生</span>
-                          <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium">系统设计</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="rounded-lg p-6 mb-4 bg-white border-t border-gray-200 mt-2">
-                  <h3 style={{color: '#3C5E5C'}} className="text-sm font-medium mb-4">职责与培训</h3>
-                  <div className="grid grid-cols-2 gap-6">
-                    <div>
-                      <p className="text-gray-500 text-xs mb-3 uppercase tracking-wider">主要职责</p>
-                      <ul className="list-disc pl-4 text-sm space-y-2 text-gray-700">
-                        <li>负责核心模块的架构设计与实现</li>
-                        <li>指导初级开发人员技术成长</li>
-                        <li>参与技术评审与技术选型</li>
-                        <li>负责系统性能优化与稳定性保障</li>
-                      </ul>
-                    </div>
-                    <div>
-                      <p className="text-gray-500 text-xs mb-3 uppercase tracking-wider">培训记录</p>
-                      <div className="space-y-3">
-                        <div className="flex items-center border-l-2 border-green-500 pl-3">
-                          <div className="flex-1">
-                            <p className="text-sm font-medium text-gray-800">高级管理培训</p>
-                            <p className="text-xs text-gray-500">2023年12月</p>
-                          </div>
-                          <div className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-medium">
-                            90分（优秀）
-                          </div>
-                        </div>
-                        <div className="flex items-center border-l-2 border-green-500 pl-3">
-                          <div className="flex-1">
-                            <p className="text-sm font-medium text-gray-800">微服务架构实践</p>
-                            <p className="text-xs text-gray-500">2022年6月</p>
-                          </div>
-                          <div className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-medium">
-                            95分（优秀）
-                          </div>
-                        </div>
-                        <div className="flex items-center border-l-2 border-blue-500 pl-3">
-                          <div className="flex-1">
-                            <p className="text-sm font-medium text-gray-800">团队领导力</p>
-                            <p className="text-xs text-gray-500">2021年3月</p>
-                          </div>
-                          <div className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-medium">
-                            88分（良好）
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="rounded-lg p-6 mb-4 bg-white border-t border-gray-200 mt-2">
-                  <h3 style={{color: '#3C5E5C'}} className="text-sm font-medium mb-4">绩效详情</h3>
-                  <div className="space-y-3">
-                    <div className="flex items-center">
-                      <div className="w-20 text-sm font-medium text-gray-700">2023年</div>
-                      <div className="flex-1 mr-4 relative">
-                        <div className="h-2 bg-gray-200 rounded-full">
-                          <div className="absolute top-0 left-0 h-2 bg-green-500 rounded-full w-[95%]"></div>
-                        </div>
-                      </div>
-                      <div className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-semibold min-w-[36px] text-center">
-                        A+
-                      </div>
-                      <div className="text-xs text-gray-500 ml-2">95%</div>
-                    </div>
-                    <div className="flex items-center">
-                      <div className="w-20 text-sm font-medium text-gray-700">2022年</div>
-                      <div className="flex-1 mr-4 relative">
-                        <div className="h-2 bg-gray-200 rounded-full">
-                          <div className="absolute top-0 left-0 h-2 bg-green-500 rounded-full w-[85%]"></div>
-                        </div>
-                      </div>
-                      <div className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-semibold min-w-[36px] text-center">
-                        A
-                      </div>
-                      <div className="text-xs text-gray-500 ml-2">85%</div>
-                    </div>
-                    <div className="flex items-center">
-                      <div className="w-20 text-sm font-medium text-gray-700">2021年</div>
-                      <div className="flex-1 mr-4 relative">
-                        <div className="h-2 bg-gray-200 rounded-full">
-                          <div className="absolute top-0 left-0 h-2 bg-blue-500 rounded-full w-[75%]"></div>
-                        </div>
-                      </div>
-                      <div className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-semibold min-w-[36px] text-center">
-                        B+
-                      </div>
-                      <div className="text-xs text-gray-500 ml-2">75%</div>
-                    </div>
-                    <div className="flex items-center">
-                      <div className="w-20 text-sm font-medium text-gray-700">2020年</div>
-                      <div className="flex-1 mr-4 relative">
-                        <div className="h-2 bg-gray-200 rounded-full">
-                          <div className="absolute top-0 left-0 h-2 bg-blue-500 rounded-full w-[70%]"></div>
-                        </div>
-                      </div>
-                      <div className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-semibold min-w-[36px] text-center">
-                        B
-                      </div>
-                      <div className="text-xs text-gray-500 ml-2">70%</div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="rounded-lg p-6 mb-4 bg-white border-t border-gray-200 mt-2">
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 style={{color: '#3C5E5C'}} className="text-sm font-medium">能力评估与岗位匹配</h3>
-                    <div className="flex space-x-2">
-                      <div className="relative">
-                        <div
-                          className={`border border-gray-300 rounded-md px-3 py-1 h-8 flex items-center justify-between text-xs min-w-[120px] cursor-pointer text-gray-800`}
-                          onClick={togglePositions}
-                        >
-                          <span>{selectedPosition || "选择岗位"}</span>
-                          <svg className="w-4 h-4 ml-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M6 9l6 6 6-6" />
-                          </svg>
-                        </div>
-                        {showPositions && (
-                          <div className="absolute top-full left-0 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-50">
-                            <ul className="py-1 max-h-[200px] overflow-y-auto">
-                              <li
-                                className="px-3 py-2 text-xs hover:bg-gray-100 cursor-pointer text-gray-500 border-b border-gray-100"
-                                onClick={() => selectPosition("选择岗位")}
-                              >
-                                选择岗位
-                              </li>
-                              {positions.map((position) => (
-                                <li 
-                                  key={position.id}
-                                  className="px-3 py-2 text-xs hover:bg-gray-100 cursor-pointer"
-                                  onClick={() => selectPosition(position.name)}
-                                >
-                                  {position.name}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-                      </div>
-                      <Button 
-                        className="bg-[#3C5E5C] hover:bg-[#2A4A48] text-white text-xs px-3 py-1 h-8 rounded-md" 
-                        onClick={handleCompare}
-                      >
-                        进行对比
-                      </Button>
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div className="space-y-5">
-                      <div>
-                        <h4 className="font-semibold text-sm text-gray-800 mb-3">综合得分</h4>
-                        <div className="flex flex-col">
-                          <div className="flex items-center mb-2">
-                            <div className="text-3xl font-semibold text-gray-800 mr-3">4.2</div>
-                            <div className="flex text-yellow-400">
-                              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" opacity="0.3"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                            </div>
-                            <div className="ml-2 px-2 py-0.5 rounded bg-gray-100 text-gray-700 text-xs">
-                              优秀
-                            </div>
-                          </div>
-                          <p className="text-sm text-gray-500 mb-4">员工与岗位匹配度达到84%，表现优秀</p>
-                        </div>
-                      </div>
-                      
-                      <div className="space-y-4">
-                        <div className="flex justify-between items-center mb-1">
-                          <h4 className="font-semibold text-sm text-gray-800">岗位适配度</h4>
-                          <div className="text-xs text-gray-500 flex items-center">
-                            <div className="flex items-center mr-3">
-                              <div className="w-3 h-3 bg-[#4f46e5] mr-1 rounded-sm"></div>
-                              <span>张三</span>
-                            </div>
-                            <div className="flex items-center">
-                              <div className="w-3 h-3 bg-[#06b6d4] mr-1 rounded-sm"></div>
-                              <span>岗位要求</span>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        <div className="grid grid-cols-2 gap-3">
-                          <div>
-                            <div className="flex justify-between text-sm mb-1">
-                              <span className="font-medium text-gray-700">沟通能力</span>
-                              <div className="flex items-center">
-                                <span className="text-sm font-semibold">4.0</span>
-                                <span className="text-xs text-gray-500 ml-1">/5.0</span>
-                                <button className="ml-2 text-gray-400 hover:text-gray-700">
-                                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                    <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
-                                  </svg>
-                                </button>
-                              </div>
-                            </div>
-                            <div className="h-2 bg-gray-200 rounded-full relative">
-                              <div className="absolute top-0 left-0 h-2 bg-[#4f46e5] rounded-full w-[80%]"></div>
-                            </div>
-                          </div>
-                          
-                          <div>
-                            <div className="flex justify-between text-sm mb-1">
-                              <span className="font-medium text-gray-700">技术知识</span>
-                              <div className="flex items-center">
-                                <span className="text-sm font-semibold">5.0</span>
-                                <span className="text-xs text-gray-500 ml-1">/5.0</span>
-                                <button className="ml-2 text-gray-400 hover:text-gray-700">
-                                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                    <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
-                                  </svg>
-                                </button>
-                              </div>
-                            </div>
-                            <div className="h-2 bg-gray-200 rounded-full relative">
-                              <div className="absolute top-0 left-0 h-2 bg-[#4f46e5] rounded-full w-[100%]"></div>
-                            </div>
-                          </div>
-                          
-                          <div>
-                            <div className="flex justify-between text-sm mb-1">
-                              <span className="font-medium text-gray-700">团队协作</span>
-                              <div className="flex items-center">
-                                <span className="text-sm font-semibold">3.0</span>
-                                <span className="text-xs text-gray-500 ml-1">/5.0</span>
-                                <button className="ml-2 text-gray-400 hover:text-gray-700">
-                                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                    <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
-                                  </svg>
-                                </button>
-                              </div>
-                            </div>
-                            <div className="h-2 bg-gray-200 rounded-full relative">
-                              <div className="absolute top-0 left-0 h-2 bg-[#4f46e5] rounded-full w-[60%]"></div>
-                            </div>
-                          </div>
-                          
-                          <div>
-                            <div className="flex justify-between text-sm mb-1">
-                              <span className="font-medium text-gray-700">按期交付</span>
-                              <div className="flex items-center">
-                                <span className="text-sm font-semibold">5.0</span>
-                                <span className="text-xs text-gray-500 ml-1">/5.0</span>
-                                <button className="ml-2 text-gray-400 hover:text-gray-700">
-                                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                    <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
-                                  </svg>
-                                </button>
-                              </div>
-                            </div>
-                            <div className="h-2 bg-gray-200 rounded-full relative">
-                              <div className="absolute top-0 left-0 h-2 bg-[#4f46e5] rounded-full w-[100%]"></div>
-                            </div>
-                          </div>
-                          
-                          <div>
-                            <div className="flex justify-between text-sm mb-1">
-                              <span className="font-medium text-gray-700">解决问题</span>
-                              <div className="flex items-center">
-                                <span className="text-sm font-semibold">4.0</span>
-                                <span className="text-xs text-gray-500 ml-1">/5.0</span>
-                                <button className="ml-2 text-gray-400 hover:text-gray-700">
-                                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                    <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
-                                  </svg>
-                                </button>
-                              </div>
-                            </div>
-                            <div className="h-2 bg-gray-200 rounded-full relative">
-                              <div className="absolute top-0 left-0 h-2 bg-[#4f46e5] rounded-full w-[80%]"></div>
-                            </div>
-                          </div>
-                          
-                          <div>
-                            <div className="flex justify-between text-sm mb-1">
-                              <span className="font-medium text-gray-700">远景精神</span>
-                              <div className="flex items-center">
-                                <span className="text-sm font-semibold">5.0</span>
-                                <span className="text-xs text-gray-500 ml-1">/5.0</span>
-                                <button className="ml-2 text-gray-400 hover:text-gray-700">
-                                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                    <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
-                                  </svg>
-                                </button>
-                              </div>
-                            </div>
-                            <div className="h-2 bg-gray-200 rounded-full relative">
-                              <div className="absolute top-0 left-0 h-2 bg-[#4f46e5] rounded-full w-[100%]"></div>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        <div className="mt-4">
-                          <p className="text-xs text-gray-500">
-                            <span className="font-semibold text-gray-700">分析结果：</span>
-                            员工在技术知识、按期交付和远景精神方面表现突出，团队协作需要进一步提升。
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="flex justify-center items-center">
-                      <div className="w-full max-w-[380px] aspect-square relative">
-                        <div className="absolute inset-0">
-                          <svg viewBox="0 0 500 500" className="w-full h-full">
-                            <g transform="translate(250, 250)">
-                              {/* 背景网格 - 刻度线 */}
-                              <polygon points="0,-120 104,-60 104,60 0,120 -104,60 -104,-60" fill="none" stroke="#e5e7eb" strokeWidth="1" />
-                              <polygon points="0,-96 83.1,-48 83.1,48 0,96 -83.1,48 -83.1,-48" fill="none" stroke="#e5e7eb" strokeWidth="1" />
-                              <polygon points="0,-72 62.4,-36 62.4,36 0,72 -62.4,36 -62.4,-36" fill="none" stroke="#e5e7eb" strokeWidth="1" />
-                              <polygon points="0,-48 41.6,-24 41.6,24 0,48 -41.6,24 -41.6,-24" fill="none" stroke="#e5e7eb" strokeWidth="1" />
-                              <polygon points="0,-24 20.8,-12 20.8,12 0,24 -20.8,12 -20.8,-12" fill="none" stroke="#e5e7eb" strokeWidth="1" />
-                              
-                              {/* 坐标轴 */}
-                              <line x1="0" y1="0" x2="0" y2="-120" stroke="#d1d5db" strokeWidth="1" />
-                              <line x1="0" y1="0" x2="104" y2="-60" stroke="#d1d5db" strokeWidth="1" />
-                              <line x1="0" y1="0" x2="104" y2="60" stroke="#d1d5db" strokeWidth="1" />
-                              <line x1="0" y1="0" x2="0" y2="120" stroke="#d1d5db" strokeWidth="1" />
-                              <line x1="0" y1="0" x2="-104" y2="60" stroke="#d1d5db" strokeWidth="1" />
-                              <line x1="0" y1="0" x2="-104" y2="-60" stroke="#d1d5db" strokeWidth="1" />
-                              
-                              {/* 岗位要求多边形 */}
-                              <path 
-                                d="M0,-96 L83.1,-48 L83.1,48 L0,96 L-83.1,48 L-83.1,-48 Z" 
-                                fill="#e9c46a" 
-                                fillOpacity="0.1" 
-                                stroke="#e9c46a" 
-                                strokeWidth="2" 
-                              />
-                              
-                              {/* 员工能力多边形 */}
-                              <path 
-                                d="M0,-96 L83.1,-48 L62.4,36 L0,96 L-83.1,48 L-83.1,-48 Z" 
-                                fill="#a8dadc" 
-                                fillOpacity="0.2" 
-                                stroke="#a8dadc" 
-                                strokeWidth="2" 
-                              />
-                              
-                              {/* 标签和数值 */}
-                              <g>
-                                {/* 沟通能力 */}
-                                <text x="0" y="-160" textAnchor="middle" fontSize="14" fill="#4b5563" fontWeight="500">沟通能力</text>
-                                <text x="0" y="-140" textAnchor="middle" fontSize="16" fontWeight="bold">
-                                  <tspan fill="#4f46e5">4.0</tspan>
-                                  <tspan fill="#06b6d4" opacity="0.6">/5.0</tspan>
-                                </text>
-                                
-                                {/* 技术知识 */}
-                                <text x="150" y="-60" textAnchor="start" fontSize="14" fill="#4b5563" fontWeight="500">技术知识</text>
-                                <text x="150" y="-40" textAnchor="start" fontSize="16" fontWeight="bold">
-                                  <tspan fill="#4f46e5">5.0</tspan>
-                                  <tspan fill="#06b6d4" opacity="0.6">/5.0</tspan>
-                                </text>
-                                
-                                {/* 团队协作 */}
-                                <text x="150" y="70" textAnchor="start" fontSize="14" fill="#4b5563" fontWeight="500">团队协作</text>
-                                <text x="150" y="90" textAnchor="start" fontSize="16" fontWeight="bold">
-                                  <tspan fill="#4f46e5">3.0</tspan>
-                                  <tspan fill="#06b6d4" opacity="0.6">/5.0</tspan>
-                                </text>
-                                
-                                {/* 按期交付 */}
-                                <text x="0" y="160" textAnchor="middle" fontSize="14" fill="#4b5563" fontWeight="500">按期交付</text>
-                                <text x="0" y="180" textAnchor="middle" fontSize="16" fontWeight="bold">
-                                  <tspan fill="#4f46e5">5.0</tspan>
-                                  <tspan fill="#06b6d4" opacity="0.6">/5.0</tspan>
-                                </text>
-                                
-                                {/* 解决问题 */}
-                                <text x="-150" y="70" textAnchor="end" fontSize="14" fill="#4b5563" fontWeight="500">解决问题</text>
-                                <text x="-150" y="90" textAnchor="end" fontSize="16" fontWeight="bold">
-                                  <tspan fill="#4f46e5">4.0</tspan>
-                                  <tspan fill="#06b6d4" opacity="0.6">/5.0</tspan>
-                                </text>
-                                
-                                {/* 远景精神 */}
-                                <text x="-150" y="-60" textAnchor="end" fontSize="14" fill="#4b5563" fontWeight="500">远景精神</text>
-                                <text x="-150" y="-40" textAnchor="end" fontSize="16" fontWeight="bold">
-                                  <tspan fill="#4f46e5">5.0</tspan>
-                                  <tspan fill="#06b6d4" opacity="0.6">/5.0</tspan>
-                                </text>
-                              </g>
-                              
-                              {/* 员工能力点 */}
-                              <circle cx="0" cy="-96" r="5" fill="#4f46e5" stroke="#fff" strokeWidth="1.5" />
-                              <circle cx="83.1" cy="-48" r="5" fill="#4f46e5" stroke="#fff" strokeWidth="1.5" />
-                              <circle cx="62.4" cy="36" r="5" fill="#4f46e5" stroke="#fff" strokeWidth="1.5" />
-                              <circle cx="0" cy="96" r="5" fill="#4f46e5" stroke="#fff" strokeWidth="1.5" />
-                              <circle cx="-83.1" cy="48" r="5" fill="#4f46e5" stroke="#fff" strokeWidth="1.5" />
-                              <circle cx="-83.1" cy="-48" r="5" fill="#4f46e5" stroke="#fff" strokeWidth="1.5" />
-                              
-                              {/* 岗位要求点 */}
-                              <circle cx="0" cy="-96" r="5" fill="#06b6d4" stroke="#fff" strokeWidth="1.5" />
-                              <circle cx="83.1" cy="-48" r="5" fill="#06b6d4" stroke="#fff" strokeWidth="1.5" />
-                              <circle cx="83.1" cy="48" r="5" fill="#06b6d4" stroke="#fff" strokeWidth="1.5" />
-                              <circle cx="0" cy="96" r="5" fill="#06b6d4" stroke="#fff" strokeWidth="1.5" />
-                              <circle cx="-83.1" cy="48" r="5" fill="#06b6d4" stroke="#fff" strokeWidth="1.5" />
-                              <circle cx="-83.1" cy="-48" r="5" fill="#06b6d4" stroke="#fff" strokeWidth="1.5" />
-                            </g>
-                          </svg>
-                        </div>
-                        
-                        {/* 缩放和控制按钮 */}
-                        <div className="absolute bottom-3 right-3 flex space-x-2">
-                          <button className="p-1.5 bg-white rounded-md shadow-md text-gray-600 hover:text-gray-900 transition-colors border border-gray-100">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <path d="M15 3h6v6M14 10l7-7M10 21H3v-7M3 14l7 7" />
-                            </svg>
-                          </button>
-                          <button className="p-1.5 bg-white rounded-md shadow-md text-gray-600 hover:text-gray-900 transition-colors border border-gray-100">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <circle cx="12" cy="12" r="10" />
-                              <path d="M12 8v8M8 12h8" />
-                            </svg>
-                          </button>
-                          <button className="p-1.5 bg-white rounded-md shadow-md text-gray-600 hover:text-gray-900 transition-colors border border-gray-100">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <circle cx="12" cy="12" r="10" />
-                              <path d="M8 12h8" />
-                            </svg>
-                          </button>
-                        </div>
-                        
-                        {/* 旋转按钮 */}
-                        <div className="absolute top-3 right-3">
-                          <button className="p-1.5 bg-white rounded-full shadow-md text-gray-600 hover:text-gray-900 transition-colors border border-gray-100">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <path d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9" />
-                            </svg>
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
                 </div>
               </CardContent>
             </Card>
+                ))}
+                
+                {/* 添加岗位模型卡片 */}
+                <Card className="shadow-sm border-dashed border-gray-300 bg-white rounded-lg overflow-hidden">
+                  <CardContent className="p-6 flex flex-col items-center justify-center min-h-[200px]">
+                    <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mb-3">
+                      <PlusIcon size={24} className="text-gray-400" />
+                </div>
+                    <h3 className="text-base font-medium text-gray-700 mb-2">添加新岗位模型</h3>
+                    <p className="text-sm text-gray-500 text-center mb-4 max-w-md">
+                      创建新的岗位模型，定义岗位所需的能力要求
+                    </p>
+                    <Button
+                      className="bg-[#3C5E5C] hover:bg-[#2A4A48] text-white"
+                      onClick={() => setShowCreatePositionDialog(true)}
+                    >
+                      创建岗位模型
+                    </Button>
+              </CardContent>
+            </Card>
+              </div>
+            </div>
           </div>
-
-          {/* 岗位匹配人才模块 - 已移至专用的匹配页面 */}
-          {/* 水平对比模态框保留 */}
-          
-          <HorizontalComparisonModal 
-            isOpen={showComparisonModal} 
-            onClose={closeComparisonModal} 
-            selectedEmployees={selectedEmployees}
-          />
-
-          {/* 人才横向对比模块已移至匹配页面 */}
-          
         </TabsContent>
 
-        <TabsContent value="matching" className="space-y-4 mt-6">
+          {/* 人才履历模块 */}
+        <TabsContent value="profile" className="space-y-6 mt-6">
+            <Card className="shadow-sm border-none bg-white rounded-lg overflow-hidden">
+            <CardHeader className="py-4 px-6 border-b border-gray-100">
+                                <div className="flex justify-between items-center">
+                <CardTitle style={{color: '#3C5E5C'}} className="text-sm font-medium">人才履历</CardTitle>
+                          <div className="flex items-center gap-2">
+                  {/* 员工选择器 */}
+                  <div className="relative">
+                        <Button 
+                      variant="outline"
+                      size="sm"
+                      onClick={toggleEmployeeList}
+                      className="text-sm border-gray-200 text-gray-700 min-w-[150px] justify-between"
+                    >
+                      {selectedEmployee ? selectedEmployee.name : "选择员工"}
+                                <svg 
+                                  xmlns="http://www.w3.org/2000/svg" 
+                        width="16"
+                        height="16"
+                                  viewBox="0 0 24 24" 
+                        fill="none"
+                                  stroke="currentColor"
+                        strokeWidth="2"
+                                    strokeLinecap="round" 
+                                    strokeLinejoin="round" 
+                        className="ml-2"
+                      >
+                        <path d="m6 9 6 6 6-6" />
+                          </svg>
+                        </Button>
+                    {showEmployeeList && (
+                      <div className="absolute mt-1 w-full z-10 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto">
+                        <div
+                          className="p-2 hover:bg-gray-100 cursor-pointer flex items-center"
+                          onClick={() => selectEmployee(null)}
+                        >
+                          <span className="text-sm">选择员工</span>
+                      </div>
+                        <div
+                          className="p-2 hover:bg-gray-100 cursor-pointer flex items-center"
+                          onClick={() => selectEmployee({ name: "张远景", position: "部门负责人" })}
+                        >
+                          <span className="text-sm">张远景 (部门负责人)</span>
+                        </div>
+                        <div
+                          className="p-2 hover:bg-gray-100 cursor-pointer flex items-center"
+                          onClick={() => selectEmployee({ name: "张华", position: "项目经理" })}
+                        >
+                          <span className="text-sm">张华 (项目经理)</span>
+                          </div>
+                        <div
+                          className="p-2 hover:bg-gray-100 cursor-pointer flex items-center"
+                          onClick={() => selectEmployee({ name: "王芳", position: "产品设计师" })}
+                        >
+                          <span className="text-sm">王芳 (产品设计师)</span>
+                    </div>
+                  </div>
+                              )}
+                            </div>
+                            </div>
+                          </div>
+              </CardHeader>
+
+              <CardContent className="p-6">
+              {selectedEmployee ? (
+                <div className="space-y-6">
+                  {/* 员工基本信息 */}
+                  <div className="flex items-start gap-6 pb-6 border-b border-gray-100">
+                    <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center">
+                      <span className="text-xl font-semibold text-gray-600">
+                        {selectedEmployee.name.substring(0, 1)}
+                      </span>
+                            </div>
+                    <div className="flex-1">
+                      <div className="flex items-baseline gap-2">
+                        <h2 className="text-xl font-semibold">{selectedEmployee.name}</h2>
+                        <span className="text-sm text-gray-500">{selectedEmployee.position}</span>
+                            </div>
+                      <div className="mt-2 text-sm text-gray-600">
+                        <div className="flex items-center gap-4">
+                          <span>员工ID: HR20210315</span>
+                          <span>体系: 氢能装备事业部</span>
+                          <span>部门: 机制建设部</span>
+                          <span>入职时间: 2021年3月15日</span>
+                          </div>
+                        </div>
+                            </div>
+                          </div>
+                          
+                  {/* 导航标签 */}
+                  <ProfileNavTabs activeTab={activeProfileTab} onTabChange={handleProfileTabChange} />
+                  
+                  {/* 动态内容区域 */}
+                  <div className="mt-4">
+                    {renderProfileContent()}
+                              </div>
+                            </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-12">
+                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-400">
+                      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                      <circle cx="9" cy="7" r="4"></circle>
+                      <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                      <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                                  </svg>
+                              </div>
+                  <h3 className="text-lg font-medium text-gray-700 mb-2">请选择员工</h3>
+                  <p className="text-sm text-gray-500 max-w-md text-center mb-6">
+                    选择一名员工来查看其人才履历信息，或选择一个岗位查看相关要求。
+                  </p>
+                      <Button 
+                    variant="outline" 
+                    onClick={toggleEmployeeList}
+                    className="text-sm"
+                      >
+                    选择员工
+                      </Button>
+                        </div>
+              )}
+              </CardContent>
+            </Card>
+        </TabsContent>
+
+        {/* 人岗匹配模块 */}
+        <TabsContent value="matching" className="mt-6">
           <MatchingPage />
         </TabsContent>
       </Tabs>
-      
-      {/* 远景精神雷达图弹窗 */}
-      {showSpiritRadarModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80 backdrop-filter backdrop-blur-sm">
-          <div className="bg-white rounded-lg w-11/12 max-w-3xl max-h-[90vh] overflow-hidden shadow-xl">
-            <div className="p-6 border-b border-gray-200 flex justify-between items-center">
-              <h2 className="text-xl font-semibold text-gray-800">张三的远景精神评估</h2>
-              <button 
-                className="text-gray-500 hover:text-gray-700" 
-                onClick={() => setShowSpiritRadarModal(false)}
-              >
-                <XIcon size={20} />
-              </button>
-                            </div>
-            <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
-              <div className="mb-4">
-                <h3 className="font-medium text-gray-700 mb-2">远景精神雷达图</h3>
-                <p className="text-xs text-gray-600 mb-4">
-                  对员工四个维度的远景精神评估：求真务实、勇于挑战、干部额外要求、正直博爱
-                </p>
-                              </div>
-              
-              {/* 雷达图 */}
-              <div className="flex justify-center items-center my-8">
-                <div className="w-full max-w-md aspect-square">
-                  <svg viewBox="0 0 600 600" width="100%" height="100%">
-                    <g transform="translate(300, 300)">
-                      {/* 背景层 */}
-                      <polygon points="0,-160 160,0 0,160 -160,0" fill="#f8fafc" stroke="#e2e8f0" strokeWidth="1" />
-                      <polygon points="0,-120 120,0 0,120 -120,0" fill="#f8fafc" stroke="#e2e8f0" strokeWidth="1" />
-                      <polygon points="0,-80 80,0 0,80 -80,0" fill="#f8fafc" stroke="#e2e8f0" strokeWidth="1" />
-                      <polygon points="0,-40 40,0 0,40 -40,0" fill="#f8fafc" stroke="#e2e8f0" strokeWidth="1" />
-                      
-                      {/* 坐标轴 */}
-                      <line x1="0" y1="0" x2="0" y2="-180" stroke="#94a3b8" strokeWidth="1" strokeDasharray="4" />
-                      <line x1="0" y1="0" x2="180" y2="0" stroke="#94a3b8" strokeWidth="1" strokeDasharray="4" />
-                      <line x1="0" y1="0" x2="0" y2="180" stroke="#94a3b8" strokeWidth="1" strokeDasharray="4" />
-                      <line x1="0" y1="0" x2="-180" y2="0" stroke="#94a3b8" strokeWidth="1" strokeDasharray="4" />
-                      
-                      {/* 标签文字 - 调整位置防止被切割 */}
-                      <text x="0" y="-210" textAnchor="middle" fontSize="14" fill="#334155" fontWeight="500">求真务实</text>
-                      <text x="210" y="0" textAnchor="start" fontSize="14" fill="#334155" fontWeight="500">勇于挑战</text>
-                      <text x="0" y="225" textAnchor="middle" fontSize="14" fill="#334155" fontWeight="500">干部额外要求</text>
-                      <text x="-210" y="0" textAnchor="end" fontSize="14" fill="#334155" fontWeight="500">正直博爱</text>
-                      
-                      {/* 刻度文字 */}
-                      <text x="0" y="-165" textAnchor="middle" fontSize="12" fill="#64748b">4级</text>
-                      <text x="0" y="-125" textAnchor="middle" fontSize="12" fill="#64748b">3级</text>
-                      <text x="0" y="-85" textAnchor="middle" fontSize="12" fill="#64748b">2级</text>
-                      <text x="0" y="-45" textAnchor="middle" fontSize="12" fill="#64748b">1级</text>
-                      
-                      {/* 员工数据多边形 */}
-                      <polygon points="0,-40 60,0 0,60 -40,0" fill="#dbeafe" fillOpacity="0.6" stroke="#3b82f6" strokeWidth="2" />
-                      
-                      {/* 数据点 */}
-                      <circle cx="0" cy="-40" r="4" fill="#3b82f6" />
-                      <circle cx="60" cy="0" r="4" fill="#3b82f6" />
-                      <circle cx="0" cy="60" r="4" fill="#3b82f6" />
-                      <circle cx="-40" cy="0" r="4" fill="#3b82f6" />
-                    </g>
-                  </svg>
-                            </div>
-                  </div>
-              
-              {/* 评估说明 */}
-              <div className="mt-4 bg-blue-50 p-4 rounded-lg border border-blue-100">
-                <h4 className="text-xs font-medium text-blue-800 mb-2">评估结果说明</h4>
-                <p className="text-xs text-blue-700">
-                  张三在"勇于挑战"方面表现最为突出，达到2级水平；正直博爱和求真务实方面达到1级标准；
-                  在干部额外要求方面达到1.5级水平。整体表现良好，符合公司远景精神要求，
-                  建议在求真务实和正直博爱方面进一步提升。
-                </p>
-                </div>
-                
-              <div className="mt-6 flex justify-end">
-                <Button 
-                  className="bg-gray-100 hover:bg-gray-200 text-gray-800 mr-2 px-4 py-2 rounded"
-                  onClick={() => setShowSpiritRadarModal(false)}
-                >
-                  关闭
-                </Button>
-                <Button className="bg-[#3C5E5C] hover:bg-[#2A4A48] text-white px-4 py-2 rounded">
-                导出评估报告
-                  </Button>
-                </div>
-          </div>
-          </div>
-        </div>
-      )}
-
-      {/* 下载模板弹窗 */}
-      <Dialog open={showDownloadTemplateDialog} onOpenChange={setShowDownloadTemplateDialog}>
-        <DialogContent className="sm:max-w-[800px]">
-          <DialogHeader>
-            <DialogTitle>{templateType}模板</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            {templateType === "领导力素质" ? (
-              <>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">素质编码</label>
-                    <Input
-                      value="L-LEAD-102"
-                      disabled
-                      className="bg-gray-50"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">素质名称</label>
-                    <Input
-                      value="战略决策能力"
-                      disabled
-                      className="bg-gray-50"
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">适用层级</label>
-                    <Input
-                      value="M4（副总裁及以上）"
-                      disabled
-                      className="bg-gray-50"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">素质类型</label>
-                    <Input
-                      value={templateType}
-                      disabled
-                      className="bg-gray-50"
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">核心定义</label>
-                    <Input
-                      value="在不确定性中做出推动业务突破的决策"
-                      disabled
-                      className="bg-gray-50"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">战略关联</label>
-                    <Input
-                      value="支撑2025年市场扩张战略"
-                      disabled
-                      className="bg-gray-50"
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">分级行为标准</label>
-                  <Input
-                    value="L4 能主导制定3-5年战略规划并推动落地"
-                    disabled
-                    className="bg-gray-50"
-                  />
-                </div>
-              </>
-            ) : templateType === "通用素质" ? (
-              <>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">素质编码</label>
-                    <Input
-                      value="G-COM-001"
-                      disabled
-                      className="bg-gray-50"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">素质名称</label>
-                    <Input
-                      value="沟通协作能力"
-                      disabled
-                      className="bg-gray-50"
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">素质类型</label>
-                  <Input
-                    value={templateType}
-                    disabled
-                    className="bg-gray-50"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">核心定义</label>
-                  <Input
-                    value="有效传递信息并协调多方达成共识"
-                    disabled
-                    className="bg-gray-50"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">分级行为标准</label>
-                  <Input
-                    value="L3能协调多方意见达成共识"
-                    disabled
-                    className="bg-gray-50"
-                  />
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">素质编码</label>
-                    <Input
-                      value={templateType === "专业素质" ? "F-PRO-001" : "G-COM-001"}
-                      disabled
-                      className="bg-gray-50"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">素质名称</label>
-                    <Input
-                      value={templateType === "专业素质" ? "税务筹划能力" : "团队协作能力"}
-                      disabled
-                      className="bg-gray-50"
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">适用岗位</label>
-                    <Input
-                      value={templateType === "专业素质" ? "财务经理岗" : "全体员工"}
-                      disabled
-                      className="bg-gray-50"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">素质类型</label>
-                    <Input
-                      value={templateType}
-                      disabled
-                      className="bg-gray-50"
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">等级划分</label>
-                    <Input
-                      value="4级 (L4)"
-                      disabled
-                      className="bg-gray-50"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">行为描述</label>
-                    <Input
-                      value={templateType === "专业素质" ? "L4：能设计跨区域税收筹划方案" : "L4：具备良好沟通能力"}
-                      disabled
-                      className="bg-gray-50"
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">关联知识</label>
-                    <Input
-                      value={templateType === "专业素质" ? "CAS 18号准则" : "团队管理理论"}
-                      disabled
-                      className="bg-gray-50"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">关联技能</label>
-                    <Input
-                      value={templateType === "专业素质" ? "税务系统操作（金税三期）" : "沟通技巧"}
-                      disabled
-                      className="bg-gray-50"
-                    />
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
-          <div className="flex justify-end space-x-2">
-            <Button variant="outline" onClick={() => setShowDownloadTemplateDialog(false)}>取消</Button>
-            <Button onClick={() => {
-              alert("模板下载成功");
-              setShowDownloadTemplateDialog(false);
-            }}>下载</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
 
       {/* 上传文件弹窗 */}
       <Dialog open={showUploadDialog} onOpenChange={setShowUploadDialog}>
@@ -3411,6 +2096,97 @@ export default function TalentStandardsPage() {
               }}
             >
               删除
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* 创建知识技能对话框 */}
+      <Dialog open={showCreateKnowledgeDialog} onOpenChange={setShowCreateKnowledgeDialog}>
+        <DialogContent className="sm:max-w-[800px]">
+          <DialogHeader>
+            <DialogTitle>创建知识技能</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">技能编码</label>
+                <Input
+                  name="code"
+                  value={newAbility.code || ""}
+                  onChange={handleAbilityChange}
+                  placeholder="如 K001"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">技能名称</label>
+                <Input
+                  name="name"
+                  value={newAbility.name}
+                  onChange={handleAbilityChange}
+                  placeholder="如 数据分析"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">适用岗位</label>
+              <Input
+                name="positions"
+                value={newAbility.positions || ""}
+                onChange={handleAbilityChange}
+                placeholder="如 数据分析师,业务分析师"
+              />
+              <p className="text-xs text-gray-500">多个岗位使用逗号分隔</p>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">技能等级</label>
+                <Select
+                  name="level"
+                  value={newAbility.level || ""}
+                  onValueChange={(value) => handleAbilityChange({
+                    target: { name: "level", value }
+                  } as any)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="选择等级" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="T1">T1 - 入门级</SelectItem>
+                    <SelectItem value="T2">T2 - 初级</SelectItem>
+                    <SelectItem value="T3">T3 - 中级</SelectItem>
+                    <SelectItem value="T4">T4 - 高级</SelectItem>
+                    <SelectItem value="T5">T5 - 专家级</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">技能描述</label>
+              <Textarea
+                name="description"
+                value={newAbility.description}
+                onChange={handleAbilityChange}
+                placeholder="描述该技能的详细内容和要求"
+                className="min-h-[100px]"
+              />
+            </div>
+          </div>
+          <div className="flex justify-end space-x-2">
+            <Button variant="outline" onClick={() => setShowCreateKnowledgeDialog(false)}>取消</Button>
+            <Button 
+              onClick={() => {
+                if (!newAbility.name) {
+                  alert("请填写技能名称");
+                  return;
+                }
+                if (selectedAbilityId) {
+                  handleCreateAbilityItem(selectedAbilityId);
+                  setShowCreateKnowledgeDialog(false);
+                }
+              }}
+            >
+              创建
             </Button>
           </div>
         </DialogContent>

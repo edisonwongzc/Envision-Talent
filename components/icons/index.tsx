@@ -1,30 +1,72 @@
+'use client';
+
 import React from 'react';
+import { 
+  Star, 
+  User, 
+  Calendar, 
+  Briefcase, 
+  Mail,
+  CreditCard
+} from 'lucide-react';
 
 interface IconProps extends React.SVGProps<SVGSVGElement> {
   size?: number;
 }
 
 /**
- * 用户图标组件
+ * 星星图标
+ * @param props 图标属性
+ * @returns 星星图标组件
  */
-export function UserIcon({ size = 24, ...props }: IconProps) {
-  return (
-    <svg 
-      width={size} 
-      height={size} 
-      viewBox="0 0 24 24" 
-      fill="none" 
-      stroke="currentColor" 
-      strokeWidth="2" 
-      strokeLinecap="round" 
-      strokeLinejoin="round"
-      {...props}
-    >
-      <path d="M12 2a5 5 0 1 0 0 10 5 5 0 0 0 0-10z" />
-      <path d="M19 21a7 7 0 0 0-14 0" />
-    </svg>
-  );
-}
+export const StarIcon = ({ size = 24, filled = false, ...props }: { size?: number; filled?: boolean; [key: string]: any }) => {
+  return <Star size={size} fill={filled ? 'currentColor' : 'none'} {...props} />;
+};
+
+/**
+ * 用户图标
+ * @param props 图标属性
+ * @returns 用户图标组件
+ */
+export const UserIcon = ({ size = 24, ...props }: { size?: number; [key: string]: any }) => {
+  return <User size={size} {...props} />;
+};
+
+/**
+ * 日历图标
+ * @param props 图标属性
+ * @returns 日历图标组件
+ */
+export const CalendarIcon = ({ size = 24, ...props }: { size?: number; [key: string]: any }) => {
+  return <Calendar size={size} {...props} />;
+};
+
+/**
+ * 公文包图标
+ * @param props 图标属性
+ * @returns 公文包图标组件
+ */
+export const BriefcaseIcon = ({ size = 24, ...props }: { size?: number; [key: string]: any }) => {
+  return <Briefcase size={size} {...props} />;
+};
+
+/**
+ * 邮件图标
+ * @param props 图标属性
+ * @returns 邮件图标组件
+ */
+export const EnvelopeIcon = ({ size = 24, ...props }: { size?: number; [key: string]: any }) => {
+  return <Mail size={size} {...props} />;
+};
+
+/**
+ * 身份证图标
+ * @param props 图标属性
+ * @returns 身份证图标组件
+ */
+export const IdCardIcon = ({ size = 24, ...props }: { size?: number; [key: string]: any }) => {
+  return <CreditCard size={size} {...props} />;
+};
 
 /**
  * 奖励/评估图标组件
@@ -69,28 +111,6 @@ export function UsersIcon({ size = 24, ...props }: IconProps) {
       <circle cx="9" cy="7" r="4" />
       <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
       <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-    </svg>
-  );
-}
-
-/**
- * 公文包/任职图标组件
- */
-export function BriefcaseIcon({ size = 24, ...props }: IconProps) {
-  return (
-    <svg 
-      width={size} 
-      height={size} 
-      viewBox="0 0 24 24" 
-      fill="none" 
-      stroke="currentColor" 
-      strokeWidth="2" 
-      strokeLinecap="round" 
-      strokeLinejoin="round"
-      {...props}
-    >
-      <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
-      <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
     </svg>
   );
 }
@@ -290,30 +310,6 @@ export function MoreIcon({ size = 24, ...props }: IconProps) {
       <circle cx="12" cy="12" r="1" />
       <circle cx="19" cy="12" r="1" />
       <circle cx="5" cy="12" r="1" />
-    </svg>
-  );
-}
-
-/**
- * 日历图标组件
- */
-export function CalendarIcon({ size = 24, ...props }: IconProps) {
-  return (
-    <svg 
-      width={size} 
-      height={size} 
-      viewBox="0 0 24 24" 
-      fill="none" 
-      stroke="currentColor" 
-      strokeWidth="2" 
-      strokeLinecap="round" 
-      strokeLinejoin="round"
-      {...props}
-    >
-      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-      <line x1="16" y1="2" x2="16" y2="6" />
-      <line x1="8" y1="2" x2="8" y2="6" />
-      <line x1="3" y1="10" x2="21" y2="10" />
     </svg>
   );
 }
