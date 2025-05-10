@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PlusIcon, XIcon, FileTextIcon, ChevronDownIcon } from "lucide-react";
+import { PlusIcon, XIcon, FileTextIcon, ChevronDownIcon, SearchIcon, FilterIcon } from "lucide-react";
 import HorizontalComparisonModal from './horizontal-comparison-modal';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
@@ -21,6 +21,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 
 /**
  * 岗位信息接口定义
@@ -74,6 +75,10 @@ interface MatchedTalent {
 const MatchingPage = () => {
   const [showComparisonModal, setShowComparisonModal] = useState(false);
   const [selectedEmployees, setSelectedEmployees] = useState(['Jay', 'Caicai Yang', 'Anders', 'Anthony']);
+  
+  // 添加强制重新渲染计数器
+  const [refreshCounter, setRefreshCounter] = useState(0);
+  const forceRefresh = () => setRefreshCounter(prev => prev + 1);
   
   // 实际选中进行对比的员工
   const [employeesToCompare, setEmployeesToCompare] = useState<string[]>([]);
@@ -382,6 +387,27 @@ const MatchingPage = () => {
   const [hardCapabilities, setHardCapabilities] = useState<CapabilityRequirement[]>(positions[0].hardCapabilities);
   const [softCapabilities, setSoftCapabilities] = useState<CapabilityRequirement[]>(positions[0].softCapabilities);
   
+  // 新增筛选状态
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedSystem, setSelectedSystem] = useState("all");
+  const [selectedBusinessUnit, setSelectedBusinessUnit] = useState("all");
+  const [selectedDepartment, setSelectedDepartment] = useState("all");
+  const [selectedPosition, setSelectedPosition] = useState("all");
+  
+  // 新增暂存的筛选条件（用于确认前的暂存）
+  const [tempSearchQuery, setTempSearchQuery] = useState("");
+  const [tempSelectedSystem, setTempSelectedSystem] = useState("all");
+  const [tempSelectedBusinessUnit, setTempSelectedBusinessUnit] = useState("all");
+  const [tempSelectedDepartment, setTempSelectedDepartment] = useState("all");
+  const [tempSelectedPosition, setTempSelectedPosition] = useState("all");
+  
+  // 筛选选项数据
+  const [filterOptions] = useState({
+    systems: ["技术体系", "产品体系", "管理体系", "运营体系", "销售体系"],
+    businessUnits: ["总部", "氢能装备事业部", "新能源事业部", "数字化事业部"],
+    departments: ["研发部", "产品部", "技术部", "前端部", "架构组", "数据部"]
+  });
+  
   // 切换岗位
   const handlePositionChange = (positionId: string) => {
     setSelectedPositionId(positionId);
@@ -393,25 +419,134 @@ const MatchingPage = () => {
     }
   };
   
-  // 打开岗位详情对话框
+  // 处理筛选逻辑
+  const handleFilterChange = () => {
+    // 将暂存筛选条件应用到实际筛选状态
+    setSearchQuery(tempSearchQuery);
+    setSelectedSystem(tempSelectedSystem);
+    setSelectedBusinessUnit(tempSelectedBusinessUnit);
+    setSelectedDepartment(tempSelectedDepartment);
+    setSelectedPosition(tempSelectedPosition);
+    
+    // 添加调试日志，检查筛选条件
+    console.log("筛选条件:", { 
+      searchQuery: tempSearchQuery, 
+      system: tempSelectedSystem, 
+      businessUnit: tempSelectedBusinessUnit,
+      department: tempSelectedDepartment,
+      position: tempSelectedPosition 
+    });
+    
+    // 根据筛选条件更新selectedPositionId，进而更新展示数据
+    const filteredPositions = positions.filter(p => {
+      let match = true;
+      
+      // 搜索匹配
+      if (tempSearchQuery && !p.info.name.includes(tempSearchQuery)) {
+        match = false;
+      }
+      
+      // 体系匹配
+      if (tempSelectedSystem !== "all" && p.info.system !== tempSelectedSystem) {
+        match = false;
+      }
+      
+      // 部门匹配 (事业部信息在当前数据模型中不存在，需要后续添加)
+      if (tempSelectedDepartment !== "all" && p.info.department !== tempSelectedDepartment) {
+        match = false;
+      }
+      
+      // 岗位匹配
+      if (tempSelectedPosition !== "all" && p.info.name !== tempSelectedPosition) {
+        match = false;
+      }
+      
+      return match;
+    });
+    
+    console.log("筛选结果数量:", filteredPositions.length);
+    
+    if (filteredPositions.length > 0) {
+      // 更新岗位ID
+      const newPositionId = filteredPositions[0].info.id;
+      console.log("选中岗位:", filteredPositions[0].info.name, "ID:", newPositionId);
+      
+      // 先创建新的状态对象，避免引用相等问题
+      const newPosition = {...filteredPositions[0].info};
+      const newHardCapabilities = [...filteredPositions[0].hardCapabilities];
+      const newSoftCapabilities = [...filteredPositions[0].softCapabilities];
+      
+      // 直接更新岗位基本信息和能力要求
+      setSelectedPositionId(newPositionId);
+      setCurrentPosition(newPosition);
+      setHardCapabilities(newHardCapabilities);
+      setSoftCapabilities(newSoftCapabilities);
+      
+      // 延迟触发强制刷新
+      setTimeout(() => {
+        forceRefresh();
+        console.log("强制刷新UI");
+      }, 10);
+    } else {
+      console.log('没有找到匹配的岗位');
+      // 可以添加一个提示，告诉用户没有匹配的岗位
+    }
+  };
+
+  // 当用户在岗位筛选下拉框中直接选择特定岗位名称时
+  const handleDirectPositionSelect = (positionName: string) => {
+    if (positionName === "all") {
+      // 如果选择了"全部岗位"，则不做特殊处理
+      setTempSelectedPosition(positionName);
+    } else {
+      // 如果选择了特定岗位，找到对应的岗位信息
+      const selectedPos = positions.find(p => p.info.name === positionName);
+      if (selectedPos) {
+        // 更新所有相关筛选条件，以匹配该岗位
+        setTempSelectedPosition(positionName);
+        setTempSelectedSystem(selectedPos.info.system);
+        setTempSelectedDepartment(selectedPos.info.department);
+      }
+    }
+  };
+  
+  // 重置筛选条件
+  const resetFilters = () => {
+    setTempSearchQuery("");
+    setTempSelectedSystem("all");
+    setTempSelectedBusinessUnit("all");
+    setTempSelectedDepartment("all");
+    setTempSelectedPosition("all");
+  };
+  
+  // 组件初始化
+  useEffect(() => {
+    handlePositionChange(selectedPositionId);
+    
+    // 初始化暂存筛选条件
+    setTempSearchQuery(searchQuery);
+    setTempSelectedSystem(selectedSystem);
+    setTempSelectedBusinessUnit(selectedBusinessUnit);
+    setTempSelectedDepartment(selectedDepartment);
+    setTempSelectedPosition(selectedPosition);
+  }, []);
+  
+  // 打开岗位详情
   const openPositionDetail = () => {
     setShowPositionDetailDialog(true);
   };
   
-  // 初始加载时设置默认岗位
-  useEffect(() => {
-    handlePositionChange(selectedPositionId);
-  }, []);
-  
+  // 打开对比模态框
   const openComparisonModal = () => {
     setShowComparisonModal(true);
   };
   
+  // 关闭对比模态框
   const closeComparisonModal = () => {
     setShowComparisonModal(false);
   };
   
-  // 选择或取消选择人才
+  // 切换人才选择
   const toggleTalentSelection = (talentId: string) => {
     setSelectedTalents(prev => {
       if (prev.includes(talentId)) {
@@ -453,24 +588,108 @@ const MatchingPage = () => {
   };
   
   return (
-    <div className="space-y-4">
+    // refreshCounter用于强制组件重新渲染
+    <div className="space-y-4" key={`matching-page-${refreshCounter}`}>
       {/* 岗位信息与能力要求综合模块 */}
       <Card className="shadow-sm border-none bg-white rounded-lg overflow-hidden">
         <CardHeader className="flex flex-row items-center justify-between py-4 px-6 border-b border-gray-100">
           <CardTitle style={{color: '#3C5E5C'}} className="text-sm font-medium">岗位信息</CardTitle>
-          <div className="flex items-center space-x-2">
-            <Select value={selectedPositionId} onValueChange={handlePositionChange}>
-              <SelectTrigger className="w-[240px]">
-                <SelectValue placeholder="选择岗位" />
-              </SelectTrigger>
-              <SelectContent>
-                {positions.map((position) => (
-                  <SelectItem key={position.info.id} value={position.info.id}>
-                    {position.info.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          
+          {/* 替换原有下拉框为新的筛选组件行 */}
+          <div className="flex-1 flex justify-end ml-4">
+            <div className="flex items-center gap-2 flex-wrap lg:flex-nowrap">
+              {/* 搜索框 */}
+              <div className="relative w-48 lg:w-64">
+                <SearchIcon className="absolute left-2 top-2.5 h-3.5 w-3.5 text-gray-400" />
+                <Input 
+                  placeholder="搜索岗位" 
+                  className="pl-8 h-8 text-xs" 
+                  value={tempSearchQuery}
+                  onChange={(e) => setTempSearchQuery(e.target.value)}
+                />
+              </div>
+              
+              {/* 体系筛选 */}
+              <Select value={tempSelectedSystem} onValueChange={setTempSelectedSystem}>
+                <SelectTrigger className="w-[120px] lg:w-[130px] h-8 text-xs">
+                  <SelectValue placeholder="选择体系" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">全部体系</SelectItem>
+                  {filterOptions.systems.map((system) => (
+                    <SelectItem key={system} value={system} className="text-xs">
+                      {system}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              
+              {/* 事业部筛选 */}
+              <Select value={tempSelectedBusinessUnit} onValueChange={setTempSelectedBusinessUnit}>
+                <SelectTrigger className="w-[140px] lg:w-[160px] h-8 text-xs">
+                  <SelectValue placeholder="选择事业部" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">全部事业部</SelectItem>
+                  {filterOptions.businessUnits.map((unit) => (
+                    <SelectItem key={unit} value={unit} className="text-xs">
+                      {unit}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              
+              {/* 部门筛选 */}
+              <Select value={tempSelectedDepartment} onValueChange={setTempSelectedDepartment}>
+                <SelectTrigger className="w-[120px] lg:w-[130px] h-8 text-xs">
+                  <SelectValue placeholder="选择部门" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">全部部门</SelectItem>
+                  {filterOptions.departments.map((dept) => (
+                    <SelectItem key={dept} value={dept} className="text-xs">
+                      {dept}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              
+              {/* 岗位筛选 */}
+              <Select value={tempSelectedPosition} onValueChange={handleDirectPositionSelect}>
+                <SelectTrigger className="w-[140px] lg:w-[160px] h-8 text-xs">
+                  <SelectValue placeholder="选择岗位" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">全部岗位</SelectItem>
+                  {positions.map((position) => (
+                    <SelectItem key={position.info.id} value={position.info.name} className="text-xs">
+                      {position.info.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              
+              {/* 确认筛选按钮 */}
+              <Button 
+                className="bg-[#3C5E5C] hover:bg-[#2A4A48] text-white text-xs h-8 px-3"
+                onClick={() => {
+                  console.log("点击确认按钮");
+                  handleFilterChange();
+                }}
+              >
+                确认
+              </Button>
+              
+              {/* 重置筛选按钮 */}
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="h-8 px-2 text-xs"
+                onClick={resetFilters}
+              >
+                重置
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="p-6">
@@ -513,98 +732,46 @@ const MatchingPage = () => {
             {/* 岗位能力要求部分 */}
             <div>
               <h3 className="text-base font-medium mb-4 text-gray-800">岗位能力要求</h3>
-              <Tabs defaultValue="hard" className="w-full">
-                <TabsList className="mb-4">
-                  <TabsTrigger value="hard" className="text-sm data-[state=active]:bg-[#f8fbfc]">硬性能力要求</TabsTrigger>
-                  <TabsTrigger value="soft" className="text-sm data-[state=active]:bg-[#f8fbfc]">软性能力要求</TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="hard">
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200 border border-gray-200 rounded-lg">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            能力项
-                          </th>
-                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            要求等级
-                          </th>
-                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            能力描述
-                          </th>
-                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            行为标准
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {hardCapabilities.map((capability) => (
-                          <tr key={capability.id}>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm font-medium text-gray-900">{capability.name}</div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                {capability.level}
-                              </span>
-                            </td>
-                            <td className="px-6 py-4">
-                              <div className="text-sm text-gray-900">{capability.description}</div>
-                            </td>
-                            <td className="px-6 py-4">
-                              <div className="text-sm text-gray-900">{capability.standard}</div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </TabsContent>
-                
-                <TabsContent value="soft">
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200 border border-gray-200 rounded-lg">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            能力项
-                          </th>
-                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            要求等级
-                          </th>
-                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            能力描述
-                          </th>
-                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            行为标准
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {softCapabilities.map((capability) => (
-                          <tr key={capability.id}>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm font-medium text-gray-900">{capability.name}</div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                                {capability.level}
-                              </span>
-                            </td>
-                            <td className="px-6 py-4">
-                              <div className="text-sm text-gray-900">{capability.description}</div>
-                            </td>
-                            <td className="px-6 py-4">
-                              <div className="text-sm text-gray-900">{capability.standard}</div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </TabsContent>
-              </Tabs>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200 border border-gray-200 rounded-lg">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        能力项
+                      </th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        要求等级
+                      </th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        能力描述
+                      </th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        行为标准
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {hardCapabilities.map((capability) => (
+                      <tr key={capability.id}>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm font-medium text-gray-900">{capability.name}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                            {capability.level}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="text-sm text-gray-900">{capability.description}</div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="text-sm text-gray-900">{capability.standard}</div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </CardContent>

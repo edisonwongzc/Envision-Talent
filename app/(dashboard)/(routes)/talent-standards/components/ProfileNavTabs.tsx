@@ -18,15 +18,17 @@ interface ProfileNavTabsProps {
 const ProfileNavTabs: React.FC<ProfileNavTabsProps> = ({ activeTab, onTabChange }) => {
   // 标签列表
   const tabs = [
+    '基本信息',
     '岗位模型',
-    '个人信息',
     '远景精神',
-    '工作履历',
+    '个人OKR',
+    '发展规划',
+    '团队盘点',
+    '组织回馈',
+    '工作提升报告',
     '人岗匹配',
-    '绩效信息',
     '评价',
-    'Talent摘要简报',
-    'Awards'
+    'Talent摘要简报'
   ];
 
   return (

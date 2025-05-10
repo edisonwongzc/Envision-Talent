@@ -1549,7 +1549,7 @@ export default function QualificationManagementPage() {
                 </div>
                 
                 <div className="space-y-4">
-                  <h3 className="text-md font-medium text-gray-700 border-b pb-2">绩效信息</h3>
+                  <h3 className="text-md font-medium text-gray-700 border-b pb-2">个人OKR</h3>
                   
                   <div className="grid grid-cols-2 gap-4">
                     <div>
