@@ -2,11 +2,10 @@
 
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
-import { Dialog } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
-import { DialogHeader, DialogTitle, DialogContent } from '@/components/ui/dialog';
 
 /**
  * 星形图标组件
@@ -92,39 +91,9 @@ export const VisionSpiritContent: React.FC = () => {
       <div className="grid grid-cols-1 gap-6">
         {/* 个人平均分 VS 干部群体中位值 */}
         <div className="bg-gray-50 p-4 rounded-md">
-          <h3 className="text-lg font-medium mb-3">个人平均分 VS 干部群体中位值</h3>
+          <h3 className="text-lg font-medium mb-3">个人平均分 VS 群体中位值</h3>
           <div className="bg-white p-4 rounded-md shadow-sm border border-gray-100">
             <div className="flex justify-end mb-4 space-x-2">
-              {/* 职级下拉框 */}
-              <div className="relative">
-                <button 
-                  className="border rounded-md px-4 py-1.5 flex items-center bg-white hover:bg-gray-50"
-                  onClick={() => {
-                    setPositionDropdown(!positionDropdown); 
-                    setDeptDropdown(false);
-                    setRoleDropdown(false);
-                  }}
-                >
-                  {selectedPosition} <svg className={`w-4 h-4 ml-2 transition-transform ${positionDropdown ? 'transform rotate-180' : ''}`} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                </button>
-                {positionDropdown && (
-                  <div className="absolute z-10 mt-1 w-40 bg-white shadow-lg rounded-md py-1 border border-gray-200">
-                    {positions.map((position) => (
-                      <div 
-                        key={position}
-                        className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
-                        onClick={() => {
-                          setSelectedPosition(position);
-                          setPositionDropdown(false);
-                        }}
-                      >
-                        {position}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-              
               {/* 道场下拉框 */}
               <div className="relative">
                 <button 
@@ -308,12 +277,12 @@ export const VisionSpiritContent: React.FC = () => {
                       <polygon points="0,-150 129.9,75 -129.9,75" fill="#f8fafc" stroke="#e2e8f0" strokeWidth="1.5" />
                       <polygon points="0,-100 86.6,50 -86.6,50" fill="#f8fafc" stroke="#e2e8f0" strokeWidth="1.5" />
                       <polygon points="0,-50 43.3,25 -43.3,25" fill="#f8fafc" stroke="#e2e8f0" strokeWidth="1.5" />
-                      
+
                       {/* 坐标轴 - 三条 */}
                       <line x1="0" y1="0" x2="0" y2="-240" stroke="#94a3b8" strokeWidth="1.5" strokeDasharray="5" />
                       <line x1="0" y1="0" x2="208" y2="120" stroke="#94a3b8" strokeWidth="1.5" strokeDasharray="5" />
                       <line x1="0" y1="0" x2="-208" y2="120" stroke="#94a3b8" strokeWidth="1.5" strokeDasharray="5" />
-                      
+
                       {/* 标签文字 - 三个维度 */}
                       <text x="0" y="-260" textAnchor="middle" fontSize="24" fill="#334155" fontWeight="500">迎难而上</text>
                       <text x="240" y="140" textAnchor="start" fontSize="24" fill="#334155" fontWeight="500">求真务实</text>
@@ -324,7 +293,7 @@ export const VisionSpiritContent: React.FC = () => {
                       <text x="0" y="-155" textAnchor="middle" fontSize="18" fill="#64748b">4分</text>
                       <text x="0" y="-105" textAnchor="middle" fontSize="18" fill="#64748b">3分</text>
                       <text x="0" y="-55" textAnchor="middle" fontSize="18" fill="#64748b">2分</text>
-                      
+
                       {/* 个人数据三角形 */}
                       <polygon points="0,-160 138.6,80 -138.6,80" fill="#dbeafe" fillOpacity="0.6" stroke="#3b82f6" strokeWidth="3" />
 
@@ -745,7 +714,7 @@ export const VisionSpiritContent: React.FC = () => {
                     </p>
                     <p className="text-sm text-gray-600">
                       4. 在高压环境下保持冷静的能力训练，提升压力应对能力。
-                    </p>
+              </p>
                   </div>
                 </div>
                 
@@ -905,6 +874,8 @@ const OKRList: React.FC = () => {
   });
   const [showForm, setShowForm] = useState(false);
   const [weightError, setWeightError] = useState<string | null>(null);
+  // 新增提示弹窗状态
+  const [showOkrTip, setShowOkrTip] = useState(false);
   
   // 计算当前权重总和
   const calculateTotalWeight = () => {
@@ -1021,9 +992,6 @@ const OKRList: React.FC = () => {
             </span>
           )}
         </div>
-        <Button size="sm" onClick={handleAdd} className="bg-blue-500 hover:bg-blue-600 text-white">
-          新增OKR
-        </Button>
       </h3>
       
       {/* 权重警告 */}
@@ -1056,12 +1024,11 @@ const OKRList: React.FC = () => {
               <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border">
                 横向/兼岗<br />主管工号
               </th>
-              <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border">操作</th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {okrList.map((item, index) => (
-              <tr key={item.id}>
+              <tr key={item.id} className="cursor-pointer hover:bg-gray-50" onClick={() => setShowOkrTip(true)}>
                 <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-500 border">{index + 1}</td>
                 <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-500 border">
                   <span className={totalWeight > 100 ? 'text-red-600 font-medium' : ''}>
@@ -1073,22 +1040,6 @@ const OKRList: React.FC = () => {
                 <td className="px-3 py-2 text-sm text-gray-500 border whitespace-pre-line">{item.keyActions}</td>
                 <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-500 border">{item.isCross ? '是' : '否'}</td>
                 <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-500 border">{item.isCross ? item.crossManagerId : '-'}</td>
-                <td className="px-3 py-2 whitespace-nowrap text-sm border">
-                  <div className="flex space-x-2">
-                    <button 
-                      className="text-blue-600 hover:text-blue-800"
-                      onClick={() => handleEdit(item)}
-                    >
-                      编辑
-                    </button>
-                    <button 
-                      className="text-red-600 hover:text-red-800"
-                      onClick={() => handleDelete(item.id)}
-                    >
-                      删除
-                    </button>
-            </div>
-                </td>
               </tr>
             ))}
           </tbody>
@@ -1196,6 +1147,18 @@ const OKRList: React.FC = () => {
           </div>
         </form>
       )}
+      {/* OKR点击提示弹窗 */}
+      <Dialog open={showOkrTip} onOpenChange={setShowOkrTip}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle>提示</DialogTitle>
+          </DialogHeader>
+          <div className="py-6 text-center text-gray-700 text-base">接口暂未开放</div>
+          <div className="flex justify-end">
+            <Button onClick={() => setShowOkrTip(false)}>关闭</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
@@ -1568,6 +1531,8 @@ interface ReviewItem {
   vision: string;
   process: string;
   performance: string;
+  positiveEvent?: string;
+  negativeEvent?: string;
 }
 
 export const ReviewContent: React.FC = () => {
@@ -1619,9 +1584,6 @@ export const ReviewContent: React.FC = () => {
       <div className="bg-gray-50 p-4 rounded-md mb-6">
         <h3 className="text-lg font-medium mb-3 flex items-center justify-between">
           <span>评价内容</span>
-          <Button size="sm" onClick={handleAdd}>
-            添加评价
-          </Button>
         </h3>
         <ul className="space-y-4">
           {reviews.length === 0 && <li className="text-gray-400">暂无评价</li>}
@@ -1643,71 +1605,18 @@ export const ReviewContent: React.FC = () => {
                 <span className="text-sm text-gray-700 font-medium mr-2">个人绩效评价：</span>
                 <span className="text-sm text-gray-600 whitespace-pre-line">{item.performance || '—'}</span>
               </div>
-              <div className="absolute top-2 right-2 flex gap-2">
-                <button className="text-blue-500 hover:underline" onClick={() => handleEdit(item)}>编辑</button>
-                <button className="text-red-500 hover:underline" onClick={() => handleDelete(item.id)}>删除</button>
+              <div className="mb-2">
+                <span className="text-sm text-green-700 font-medium mr-2">正项事件：</span>
+                <span className="text-sm text-gray-600 whitespace-pre-line">{item.positiveEvent || '带领团队完成核心项目交付，获得客户高度评价'}</span>
+              </div>
+              <div className="mb-2">
+                <span className="text-sm text-red-700 font-medium mr-2">负项事件：</span>
+                <span className="text-sm text-gray-600 whitespace-pre-line">{item.negativeEvent || '跨部门沟通不畅，导致项目延期'}</span>
               </div>
             </li>
           ))}
         </ul>
       </div>
-      {showDialog && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
-          <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
-            <h4 className="text-lg font-medium mb-4">{editingId ? "编辑评价" : "添加评价"}</h4>
-            <form className="space-y-4" onSubmit={handleSubmit}>
-              <div>
-                <label className="block text-sm mb-1">自我评价</label>
-                <textarea
-                  name="self"
-                  value={form.self}
-                  onChange={handleChange}
-                  className="w-full border rounded px-2 py-1"
-                  rows={2}
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm mb-1">远景精神评价</label>
-                <textarea
-                  name="vision"
-                  value={form.vision}
-                  onChange={handleChange}
-                  className="w-full border rounded px-2 py-1"
-                  rows={2}
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm mb-1">流程角色评价</label>
-                <textarea
-                  name="process"
-                  value={form.process}
-                  onChange={handleChange}
-                  className="w-full border rounded px-2 py-1"
-                  rows={2}
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm mb-1">个人绩效评价</label>
-                <textarea
-                  name="performance"
-                  value={form.performance}
-                  onChange={handleChange}
-                  className="w-full border rounded px-2 py-1"
-                  rows={2}
-                  required
-                />
-              </div>
-              <div className="flex gap-2 mt-2 justify-end">
-                <Button size="sm" type="submit">保存</Button>
-                <Button size="sm" variant="outline" type="button" onClick={handleCancel}>取消</Button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </Card>
   );
 };
@@ -1720,6 +1629,8 @@ export const JobModelContent: React.FC = () => {
   const [showExpectedPosition, setShowExpectedPosition] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [selectedPosition, setSelectedPosition] = useState(0); // 当前选择的职位卡片索引
+  // 新增导出清单弹窗状态
+  const [showExportDialog, setShowExportDialog] = useState(false);
 
   // 职位数据，包含匹配度
   const positions = [
@@ -1780,38 +1691,51 @@ export const JobModelContent: React.FC = () => {
       <div className="mb-8">
         <div className="bg-white p-4 rounded-md shadow-sm border border-gray-100">
           <div className="mb-4 flex items-center justify-between">
-            <h3 className="font-medium text-lg">岗位模型的{showExpectedPosition ? '期望岗位' : '履职贡献'}</h3>
-            <div className="relative">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="flex items-center"
-                onClick={toggleDropdown}
+            <div className="flex-1 flex items-center">
+              <h3 className="font-medium text-lg">岗位模型的{showExpectedPosition ? '期望岗位' : '履职贡献'}</h3>
+            </div>
+            <div className="flex items-center" style={{ gap: '15px' }}>
+              {/* 下拉切换按钮 */}
+              <div className="relative">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center"
+                  onClick={toggleDropdown}
+                >
+                  {showExpectedPosition ? '期望岗位' : '历史履历'}
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </Button>
+                {dropdownOpen && (
+                  <div className="absolute right-0 mt-1 w-32 bg-white shadow-lg rounded-md py-1 border border-gray-200 z-10">
+                    {showExpectedPosition ? (
+                      <div
+                        className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+                        onClick={switchToHistoryPosition}
+                      >
+                        历史履历
+                      </div>
+                    ) : (
+                      <div
+                        className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+                        onClick={switchToExpectedPosition}
+                      >
+                        期望岗位
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+              {/* 导出清单按钮 */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowExportDialog(true)}
               >
-                {showExpectedPosition ? '期望岗位' : '历史履历'} 
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
-                  <polyline points="6 9 12 15 18 9"></polyline>
-                </svg>
+                导出清单
               </Button>
-              {dropdownOpen && (
-                <div className="absolute right-0 mt-1 w-48 bg-white shadow-lg rounded-md py-1 border border-gray-200 z-10">
-                  {showExpectedPosition ? (
-                    <div 
-                      className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
-                      onClick={switchToHistoryPosition}
-                    >
-                      历史履历
-                    </div>
-                  ) : (
-                    <div 
-                      className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
-                      onClick={switchToExpectedPosition}
-                    >
-                      期望岗位
-                    </div>
-                  )}
-                </div>
-              )}
             </div>
           </div>
           
@@ -1913,231 +1837,267 @@ export const JobModelContent: React.FC = () => {
         
         <TabsContent value="base">
           <div className="bg-white p-4 rounded-md shadow-sm border border-gray-100">
-            {!showExpectedPosition ? (
-              /* 根据选择的职位显示不同内容 */
-              <div>
-                <h4 className="text-base font-medium mb-4">
-                  {positions[selectedPosition].title} 基本信息
-                </h4>
-                <table className="min-w-full text-sm">
-                  <tbody>
-                    <tr className="border-b">
-                      <td className="px-4 py-2 bg-gray-50 font-medium w-1/5">岗位名称</td>
-                      <td className="px-4 py-2">{positions[selectedPosition].title}</td>
-                    </tr>
-                    <tr className="border-b">
-                      <td className="px-4 py-2 bg-gray-50 font-medium">所属部门</td>
-                      <td className="px-4 py-2">{positions[selectedPosition].department}</td>
-                    </tr>
-                    <tr className="border-b">
-                      <td className="px-4 py-2 bg-gray-50 font-medium">岗位职级</td>
-                      <td className="px-4 py-2">P{7 - selectedPosition}</td>
-                    </tr>
-                    <tr>
-                      <td className="px-4 py-2 bg-gray-50 font-medium">岗位正念认知</td>
-                      <td className="px-4 py-2">
-                        {selectedPosition === 0 ? "负责团队整体管理与技术方向" : 
-                         selectedPosition === 1 ? "负责架构设计与团队技术指导" : 
-                         "负责系统核心模块开发"}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-            <table className="min-w-full text-sm">
-              <thead>
-                <tr>
-                  <th className="px-4 py-2 text-left">字段</th>
-                  <th className="px-4 py-2 text-left">内容</th>
-                </tr>
-              </thead>
+            {/* 岗位模型-基本信息，参考UI表格风格 */}
+            {/**
+             * 岗位模型-基本信息内容
+             * @returns {React.ReactElement} 岗位模型-基本信息内容
+             */}
+            <table className="min-w-full text-sm border" style={{ tableLayout: 'fixed' }}>
               <tbody>
-                <tr>
-                  <td className="px-4 py-2">岗位名称</td>
-                    <td className="px-4 py-2">技术总监-机械结构系统设计</td>
+                <tr className="border-b">
+                  <td className="px-4 py-2 bg-gray-50 font-medium w-1/5">岗位名称</td>
+                  <td className="px-4 py-2">测试中心负责人</td>
+                  <td className="px-4 py-2 bg-gray-50 font-medium w-1/5"></td>
+                  <td className="px-4 py-2"></td>
+                </tr>
+                <tr className="border-b">
+                  <td className="px-4 py-2 bg-gray-50 font-medium">岗位编码</td>
+                  <td className="px-4 py-2">/</td>
+                  <td className="px-4 py-2 bg-gray-50 font-medium"></td>
+                  <td className="px-4 py-2"></td>
+                </tr>
+                <tr className="border-b">
+                  <td className="px-4 py-2 bg-gray-50 font-medium">岗位继任人</td>
+                  <td className="px-4 py-2" colSpan={3}>体系负责人-叶片事业部/机械结构事业部</td>
+                </tr>
+                <tr className="border-b">
+                  <td className="px-4 py-2 bg-gray-50 font-medium">正念认知与讨论/核心输出</td>
+                  <td className="px-4 py-2" colSpan={3}>
+                    1.通过测试验证体系数据和结论的质量，提升组织的质量感知和质量关注度；<br/>
+                    2.2025年推动测试中心体系性降本增效，提升测试验证的质量和效率，推动测试技术革新；<br/>
+                    3.2025年推动测试中心体系性降本增效，资源整合、优先导入、效率提升。
+                  </td>
+                </tr>
+                <tr className="border-b">
+                  <td className="px-4 py-2 bg-gray-50 font-medium">岗位设置性</td>
+                  <td className="px-4 py-2" colSpan={3}>
+                    1.机械性能实验室测试自动高效设备有提升，基于目前高质量实验的分析链，运营带动能量和促使质量效率快速改善；<br/>
+                    2.测试中心具备高效的资源整合能力，推动测试验证体系性降本增效，并且能整合资源到测试成效的地方；<br/>
+                    3.测试中心具备高效的资源整合能力，推动测试验证体系性降本增效，并且能整合资源到测试成效的地方；<br/>
+                    4.在建、调整和优化测试体系，定期梳理流程和标准，推动建立科学严谨的评价标准；<br/>
+                    5.测试中心具备高效的资源整合能力，推动测试验证体系性降本增效，效率提升。
+                  </td>
+                </tr>
+                <tr className="border-b">
+                  <td className="px-4 py-2 bg-gray-50 font-medium">关键业务/业务挑战</td>
+                  <td className="px-4 py-2" colSpan={3}>
+                    1.测试验证的关键业务，进入PPAP网络安全，全部叶片测试台的建设与分炉扩展并开放大叶轮测试的关键瓶颈；<br/>
+                    2.测试验证的结构特性实验的建模与分析，进行"新材料""新工艺"验证的效率，帮助前期解决研发问题，同时引导正确质量观；<br/>
+                    3.通过EIREC 认证及机械性能实验室100+项无损，覆盖测试中心重要实验项目管理和流程建设，进一步帮助组织提升测试结论利用和数据管理的规范性和权威性，推动叶片及部件综合效能优化，提升产品竞争力。
+                  </td>
+                </tr>
+                <tr className="border-b">
+                  <td className="px-4 py-2 bg-gray-50 font-medium">关键能力要求</td>
+                  <td className="px-4 py-2" colSpan={3}>
+                    1.测试方案设计和验证的技术理解力；<br/>
+                    2.组织资源整合能力，尤其是复杂项目多并发的管理能力；<br/>
+                    3.跨部门沟通与团队管理能力；
+                  </td>
+                </tr>
+                <tr className="border-b">
+                  <td className="px-4 py-2 bg-gray-50 font-medium">岗位软硬性经验</td>
+                  <td className="px-4 py-2" colSpan={3}>
+                    1.大型实验室/性能中心0~1建设经验；<br/>
+                    2.材料/结构/实验室 产品相关经验；<br/>
+                    3.5年以上行业管理/团队管理经验。
+                  </td>
+                </tr>
+                <tr className="border-b">
+                  <td className="px-4 py-2 bg-gray-50 font-medium">运营特殊要求</td>
+                  <td className="px-4 py-2" colSpan={3}>
+                    1.测试验证的核心岗位/团队独立担当能力；<br/>
+                    2.具备实验室/测试中心/认证机构相关经验；<br/>
+                    3.具备大型实验室/性能中心管理经验；<br/>
+                    4.高意愿度，用户一切动作追求结果；<br/>
+                    5.善于在技术和管理的实践里完善流程及规范。
+                  </td>
+                </tr>
+                <tr className="border-b">
+                  <td className="px-4 py-2 bg-gray-50 font-medium">顶尖人才来源</td>
+                  <td className="px-4 py-2" colSpan={3}>
+                    第一优先级：CGC、DNV（具备EIREC资质的测试运营管理）<br/>
+                    第二优先级：SGS、CQC<br/>
+                    第三优先级：中认尚高、中科通测
+                  </td>
+                </tr>
+                <tr className="border-b">
+                  <td className="px-4 py-2 bg-gray-50 font-medium">人才吸引策略</td>
+                  <td className="px-4 py-2" colSpan={3}>
+                    1.全盘管理叶片测试、机械性能实验室、复合材料实验室全场的各项运营，40人+的执行团队，有机地整合实验设计和测试的前沿技术和资源；<br/>
+                    2.与测试行业协会联合办会，又相对独立运作，保有研发创新反馈的独特权力。
+                  </td>
+                </tr>
+                <tr className="border-b">
+                  <td className="px-4 py-2 bg-gray-50 font-medium">未来岗位发展方向</td>
+                  <td className="px-4 py-2" colSpan={3}>该岗位未来可发展为资深管理者、培养方向等</td>
+                </tr>
+                <tr className="border-b">
+                  <td className="px-4 py-2 bg-gray-50 font-medium">岗位-组织架构</td>
+                  <td className="px-4 py-2" colSpan={3}>汇报对象：助理体系负责人 团队构成：3人测试中心人员（机械性能实验室&工房/化测测试台&复合材料实验室） 相关接口：EIREC & LMT负责人&PMO，测试技术开发团队&标准，推进者&需求&风控分析相关测试项目的高效运行；相关接口：体系&工艺，能力提升&设计前期的测试验证。</td>
+                </tr>
+                <tr className="border-b">
+                  <td className="px-4 py-2 bg-gray-50 font-medium">岗位JD</td>
+                  <td className="px-4 py-2" colSpan={3}>
+                    1.测试资源与质量管理，负责叶片测试台、机械性能测试中心、复合材料实验室等测试资源的全流程管理；<br/>
+                    2.测试方案设计与验证，推动测试技术创新，提升测试效率和结论的权威性；<br/>
+                    3.测试数据分析与报告，输出高质量测试结论，推动测试结论在产品开发、质量改进等环节的落地；<br/>
+                    4.团队管理与人才培养，建设高效团队，推动团队成员能力提升；<br/>
+                    5.跨部门协作，推动测试结论在产品开发、质量改进等环节的落地，强化组织协同能力；<br/>
+                    6.实验室管理与认证，推动实验室资质认证和管理体系建设，完善人员资质及技术评估。
+                  </td>
                 </tr>
                 <tr>
-                  <td className="px-4 py-2">岗位正念认知</td>
-                    <td className="px-4 py-2">负责团队整体技术方向与战略规划</td>
+                  <td className="px-4 py-2 bg-gray-50 font-medium">任职要求</td>
+                  <td className="px-4 py-2" colSpan={3}>
+                    1.硕士及以上学历，材料/结构/管理专业，5年以上经验，风电行业优先；<br/>
+                    2.具备大型实验室/性能中心管理经验，熟悉测试流程和标准，具备较强的组织协调能力；<br/>
+                    3.具备较强的沟通能力和团队管理能力，具备较强的抗压能力和责任感；<br/>
+                    4.具备较强的学习能力和创新能力，具备较强的逻辑思维能力；<br/>
+                    5.年龄44岁以下。
+                  </td>
                 </tr>
               </tbody>
             </table>
-            )}
           </div>
         </TabsContent>
         
         <TabsContent value="process">
           <div className="bg-white p-4 rounded-md shadow-sm border border-gray-100">
-            {!showExpectedPosition ? (
-              <div>
-                <h4 className="text-base font-medium mb-4">
-                  {positions[selectedPosition].title} 流程属性
-                </h4>
-            <table className="min-w-full text-sm">
+            {/* 流程属性表格，参考UI */}
+            <table className="min-w-full text-sm border" style={{ tableLayout: 'fixed' }}>
               <thead>
                 <tr>
-                  <th className="px-4 py-2 text-left">属性</th>
-                  <th className="px-4 py-2 text-left">内容</th>
+                  <th className="px-2 py-2 bg-gray-50 font-medium">L1一级流程名称</th>
+                  <th className="px-2 py-2 bg-gray-50 font-medium">L2二级流程名称</th>
+                  <th className="px-2 py-2 bg-gray-50 font-medium">L3三级流程名称</th>
+                  <th className="px-2 py-2 bg-gray-50 font-medium">本岗位在流程中的关键活动</th>
+                  <th className="px-2 py-2 bg-gray-50 font-medium">岗位在流程中承担的角色</th>
+                  <th className="px-2 py-2 bg-gray-50 font-medium">关联的其他角色/岗（如流程前后道、流程GPO/BPO/MPO等）</th>
+                  <th className="px-2 py-2 bg-gray-50 font-medium">角色所在的流程节点是否关键控制点</th>
+                  <th className="px-2 py-2 bg-gray-50 font-medium">负责的交付物/交付件（有文件交付/交付件一行）</th>
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td className="px-4 py-2">流程类型</td>
-                      <td className="px-4 py-2">
-                        {selectedPosition === 0 ? "管理流程" : 
-                         selectedPosition === 1 ? "开发流程" : 
-                         "执行流程"}
-                      </td>
-                </tr>
-                <tr>
-                  <td className="px-4 py-2">流程描述</td>
-                      <td className="px-4 py-2">
-                        {selectedPosition === 0 ? "负责团队整体管理与绩效考核" : 
-                         selectedPosition === 1 ? "负责系统架构设计与评审" : 
-                         "负责功能模块开发与测试"}
-                      </td>
-                </tr>
+                {/* 静态示例数据，实际可后续对接接口 */}
+                {Array.from({ length: 10 }).map((_, idx) => (
+                  <tr key={idx} className="border-b">
+                    <td className="px-2 py-2">EDV</td>
+                    <td className="px-2 py-2">1.1及时机制系列开发</td>
+                    <td className="px-2 py-2">1.1技术路线规划与更新业务流程</td>
+                    <td className="px-2 py-2">测试</td>
+                    <td className="px-2 py-2">测试验证ISE</td>
+                    <td className="px-2 py-2">测试验证ISE</td>
+                    <td className="px-2 py-2">否</td>
+                    <td className="px-2 py-2">支持IC专项：TBB/CBBA技术路线规划更新输出（通过流程分阶段对比，规划/更新/验证等多环节通过测试对比，测前/测后即作出模块BCD推进）</td>
+                  </tr>
+                ))}
               </tbody>
             </table>
-              </div>
-            ) : (
-              <table className="min-w-full text-sm">
-                <thead>
-                  <tr>
-                    <th className="px-4 py-2 text-left">属性</th>
-                    <th className="px-4 py-2 text-left">内容</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td className="px-4 py-2">流程类型</td>
-                    <td className="px-4 py-2">战略规划流程</td>
-                  </tr>
-                  <tr>
-                    <td className="px-4 py-2">流程描述</td>
-                    <td className="px-4 py-2">负责部门战略规划与资源分配</td>
-                  </tr>
-                </tbody>
-              </table>
-            )}
           </div>
         </TabsContent>
         
         <TabsContent value="role">
-          <div className="bg-white p-4 rounded-md shadow-sm border border-gray-100">
-            {!showExpectedPosition ? (
-              <div>
-                <h4 className="text-base font-medium mb-4">
-                  {positions[selectedPosition].title} 角色认知 & 职责
-                </h4>
-            <table className="min-w-full text-sm">
+          <div className="bg-white p-4 rounded-md shadow-sm border border-gray-100 overflow-x-auto">
+            {/* 角色认知&职责表格，参考UI，支持横向滚动 */}
+            <table className="min-w-[1600px] text-sm border" style={{ tableLayout: 'fixed' }}>
               <thead>
                 <tr>
-                  <th className="px-4 py-2 text-left">角色</th>
-                  <th className="px-4 py-2 text-left">职责</th>
+                  <th className="px-2 py-2 bg-gray-50 font-medium">角色认知（一句话认知）</th>
+                  <th className="px-2 py-2 bg-gray-50 font-medium">业务场景</th>
+                  <th className="px-2 py-2 bg-gray-50 font-medium">关键流程描述</th>
+                  <th className="px-2 py-2 bg-gray-50 font-medium">业务价值创造/关键KPI</th>
+                  <th className="px-2 py-2 bg-gray-50 font-medium">对应规则</th>
+                  <th className="px-2 py-2 bg-gray-50 font-medium">涉及的流程名称（L1-L2-L3-L4）</th>
+                  <th className="px-2 py-2 bg-gray-50 font-medium">对应的流程角色</th>
+                  <th className="px-2 py-2 bg-gray-50 font-medium">关联的其他角色/岗（如流程前后道、流程GPO/BPO/MPO等）</th>
+                  <th className="px-2 py-2 bg-gray-50 font-medium">工具/模板/数据表名称</th>
+                  <th className="px-2 py-2 bg-gray-50 font-medium">专业任职资格能力</th>
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                      <td className="px-4 py-2">
-                        {selectedPosition === 0 ? "团队管理者" : 
-                         selectedPosition === 1 ? "架构设计师" : 
-                         "开发工程师"}
-                      </td>
-                      <td className="px-4 py-2">
-                        {selectedPosition === 0 ? "负责团队建设、人才培养、资源协调" : 
-                         selectedPosition === 1 ? "负责系统架构设计、技术选型、架构评审" : 
-                         "负责模块开发、单元测试、代码审查"}
-                      </td>
-                    </tr>
-                    <tr>
-                      <td className="px-4 py-2">
-                        {selectedPosition === 0 ? "技术决策者" : 
-                         selectedPosition === 1 ? "技术指导者" : 
-                         "执行者"}
-                      </td>
-                      <td className="px-4 py-2">
-                        {selectedPosition === 0 ? "制定技术路线与规范、解决关键技术问题" : 
-                         selectedPosition === 1 ? "提供技术指导、审核技术方案" : 
-                         "执行开发任务、解决具体技术问题"}
-                      </td>
-                </tr>
+                {/* 静态示例数据，实际可后续对接接口 */}
+                {Array.from({ length: 8 }).map((_, idx) => (
+                  <tr key={idx} className="border-b">
+                    <td className="px-2 py-2">安全运营第一责任人</td>
+                    <td className="px-2 py-2">测试执行</td>
+                    <td className="px-2 py-2">1. 通过各岗位风险识别（LECD）<br/>2. 制定和落实安全管理要求；<br/>3. EHS 相关整改计划；<br/>4. EHS  违规安全评估；</td>
+                    <td className="px-2 py-2">医疗以上事故数0；<br/>急病与异常分级列≤1；<br/>未遂事件≤2；</td>
+                    <td className="px-2 py-2">EHS一级规则</td>
+                    <td className="px-2 py-2">作业安全风险识别与易规管理流程<br/>EHS能力要求和流程管控要求<br/>EHS  违规整改闭环和行动追踪流程<br/>外委人员入厂/场作业EHS管理流程</td>
+                    <td className="px-2 py-2">组织负责人</td>
+                    <td className="px-2 py-2">测试</td>
+                    <td className="px-2 py-2">作业安全风险识别评价表模板、<br/>作业安全专项检查内容及数据跟踪表；<br/>EHS  违规整改计划；<br/>不符合项因分析和行动制定追踪模板</td>
+                    <td className="px-2 py-2">L3/L4</td>
+                  </tr>
+                ))}
               </tbody>
             </table>
-              </div>
-            ) : (
-              <table className="min-w-full text-sm">
-                <thead>
-                  <tr>
-                    <th className="px-4 py-2 text-left">角色</th>
-                    <th className="px-4 py-2 text-left">职责</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td className="px-4 py-2">战略规划师</td>
-                    <td className="px-4 py-2">制定部门战略规划与技术发展路线图</td>
-                  </tr>
-                </tbody>
-              </table>
-            )}
           </div>
         </TabsContent>
         
         <TabsContent value="ref">
           <div className="bg-white p-4 rounded-md shadow-sm border border-gray-100">
-            {!showExpectedPosition ? (
-              <div>
-                <h4 className="text-base font-medium mb-4">
-                  {positions[selectedPosition].title} 参考
-                </h4>
-            <table className="min-w-full text-sm">
+            {/* 关键能力对比 */}
+            <h3 className="text-lg font-bold mb-2">关键能力对比</h3>
+            <table className="min-w-full text-sm border mb-8">
               <thead>
                 <tr>
-                  <th className="px-4 py-2 text-left">参考项</th>
-                  <th className="px-4 py-2 text-left">内容</th>
+                  <th className="px-4 py-2 bg-gray-50 font-medium text-left" style={{width: '40%'}}>维度</th>
+                  <th className="px-4 py-2 bg-gray-50 font-medium text-left">岗位要求</th>
+                  <th className="px-4 py-2 bg-gray-50 font-medium text-left">达成级别</th>
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                      <td className="px-4 py-2">关键技能</td>
-                      <td className="px-4 py-2">
-                        {selectedPosition === 0 ? "团队管理、资源调配、沟通协调" : 
-                         selectedPosition === 1 ? "架构设计、技术选型、方案评审" : 
-                         "编程能力、问题分析、单元测试"}
-                      </td>
-                    </tr>
-                    <tr>
-                      <td className="px-4 py-2">绩效指标</td>
-                      <td className="px-4 py-2">
-                        {selectedPosition === 0 ? "团队绩效、项目交付、人才培养" : 
-                         selectedPosition === 1 ? "架构质量、技术创新、团队协作" : 
-                         "代码质量、任务完成、技术成长"}
-                      </td>
-                </tr>
+                {Array.from({ length: 6 }).map((_, idx) => (
+                  <tr key={idx} className="border-b align-top">
+                    <td className="px-4 py-2" style={{width: '40%'}}>
+                      <span className="font-bold block mb-1">组织协调</span>
+                      <span className="block text-gray-700 leading-relaxed">根据工作目标的需要，合理配置相关资源，协调各方面关系、调动各方面的积极性，并及时处理和解决目标实现过程中各种问题的能力</span>
+                    </td>
+                    <td className="px-4 py-2">4</td>
+                    <td className="px-4 py-2">3</td>
+                  </tr>
+                ))}
               </tbody>
             </table>
-              </div>
-            ) : (
-              <table className="min-w-full text-sm">
-                <thead>
-                  <tr>
-                    <th className="px-4 py-2 text-left">参考项</th>
-                    <th className="px-4 py-2 text-left">内容</th>
+            {/* 远景精神对比 */}
+            <h3 className="text-lg font-bold mb-2">远景精神对比</h3>
+            <table className="min-w-full text-sm border">
+              <thead>
+                <tr>
+                  <th className="px-4 py-2 bg-gray-50 font-medium text-left" style={{width: '40%'}}>维度</th>
+                  <th className="px-4 py-2 bg-gray-50 font-medium text-left">岗位要求</th>
+                  <th className="px-4 py-2 bg-gray-50 font-medium text-left">达成级别</th>
+                </tr>
+              </thead>
+              <tbody>
+                {Array.from({ length: 5 }).map((_, idx) => (
+                  <tr key={idx} className="border-b align-top">
+                    <td className="px-4 py-2" style={{width: '40%'}}>
+                      <span className="font-bold block mb-1">正心正念</span>
+                      <span className="block text-gray-700 leading-relaxed">时刻以远景价值观要求提升自己</span>
+                    </td>
+                    <td className="px-4 py-2">4</td>
+                    <td className="px-4 py-2">3</td>
                   </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td className="px-4 py-2">相关资源</td>
-                    <td className="px-4 py-2">技术发展规划参考文档</td>
-                  </tr>
-                </tbody>
-              </table>
-            )}
+                ))}
+              </tbody>
+            </table>
           </div>
         </TabsContent>
       </Tabs>
+      {/* 导出清单弹窗 */}
+      <Dialog open={showExportDialog} onOpenChange={setShowExportDialog}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle>导出清单</DialogTitle>
+          </DialogHeader>
+          <div className="py-6 text-center text-gray-700 text-base">导出功能暂未实现</div>
+          <div className="flex justify-end">
+            <Button onClick={() => setShowExportDialog(false)}>关闭</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 };
@@ -2256,30 +2216,6 @@ export const DevelopmentPlanContent: React.FC = () => {
                   <li>负责部门战略规划</li>
                   <li>完成MBA学位</li>
                 </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* 新任干部的90天转身报告 */}
-        <div className="bg-gray-50 p-4 rounded-md">
-          <h3 className="text-lg font-medium mb-3">新任干部的90天转身报告</h3>
-          <div className="bg-white p-4 rounded-md shadow-sm border border-gray-100">
-            <div className="space-y-3 text-sm text-gray-700">
-              <div>
-                <h4 className="font-medium text-gray-700 mb-1">第一阶段（30天）：熟悉与适应</h4>
-                <p>完成团队全员一对一沟通，了解团队现状及成员能力。制定90天工作计划并获得上级认可。</p>
-              </div>
-              <div>
-                <h4 className="font-medium text-gray-700 mb-1">第二阶段（31-60天）：诊断与优化</h4>
-                <p>发现团队运作中的3个关键问题并提出改进方案。建立团队周会机制，提升沟通效率。</p>
-              </div>
-              <div>
-                <h4 className="font-medium text-gray-700 mb-1">第三阶段（61-90天）：创新与提升</h4>
-                <p>推动团队完成季度KPI，达成预期目标。制定团队长期发展规划，获得管理层支持。</p>
-              </div>
-              <div className="mt-2 text-blue-600">
-                <p>当前进度：第二阶段（45/90天）</p>
               </div>
             </div>
           </div>
@@ -2530,201 +2466,6 @@ export const TeamAssessmentContent: React.FC = () => {
     </Card>
   );
 };
-
-/**
- * 组织回馈内容组件
- * @returns {React.ReactElement} 组织回馈内容
- */
-export const OrganizationFeedbackContent: React.FC = () => {
-  return (
-    <Card className="p-6">
-      <div className="grid grid-cols-1 gap-6">
-        <div className="bg-gray-50 p-4 rounded-md">
-          <h3 className="text-lg font-medium mb-3">组织回馈</h3>
-          <div className="bg-white p-4 rounded-md shadow-sm border border-gray-100">
-            <div className="mb-4">
-              <div className="p-3 bg-gray-50 rounded-md">
-                <h4 className="text-sm font-medium mb-2">在OKR之外：</h4>
-                <ol className="list-decimal pl-5 text-sm text-gray-700 space-y-2">
-                  <li>对公司热点问题的献言献策，用于评估其对公司重大部署的思考与能力；</li>
-                  <li>主动承担额外角色（如糖导师）、搭建岗位标准、优化流程机制等非量化贡献，用于评估其对组织长期发展的系统性支持。</li>
-                </ol>
-              </div>
-            </div>
-            <div className="space-y-4">
-              <div>
-                <label htmlFor="feedback" className="block text-sm font-medium text-gray-700 mb-1">
-                  员工OKR以外的贡献与建议
-                </label>
-                <textarea
-                  id="feedback"
-                  rows={6}
-                  className="w-full border border-gray-300 rounded-md p-2 text-sm"
-                  placeholder="请输入员工在OKR之外的贡献、建议或其他组织回馈内容..."
-                ></textarea>
-              </div>
-              <div className="flex justify-end">
-                <button className="px-4 py-2 bg-green-500 text-white rounded-md text-sm hover:bg-green-600">
-                  保存回馈
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </Card>
-  );
-};
-
-/**
- * 工作提升报告内容组件
- * @returns {React.ReactElement} 工作提升报告内容
- */
-export const WorkImprovementReportContent: React.FC = () => {
-  const [reports, setReports] = useState([
-    { id: 1, name: "2024年Q1工作提升报告.docx", date: "2024-03-28", size: "1.2MB" },
-    { id: 2, name: "2023年Q4季度总结.docx", date: "2023-12-20", size: "2.5MB" },
-    { id: 3, name: "项目优化建议书.docx", date: "2024-02-15", size: "1.8MB" },
-    { id: 4, name: "流程改进方案.docx", date: "2024-01-10", size: "3.1MB" },
-  ]);
-  const [showUploadDialog, setShowUploadDialog] = useState(false);
-  const [newFileName, setNewFileName] = useState("");
-
-  const handleDelete = (id: number) => {
-    if (confirm("确定要删除此文件吗？")) {
-      setReports(reports.filter(report => report.id !== id));
-    }
-  };
-
-  const handleUpload = () => {
-    if (!newFileName.trim()) return;
-    
-    // 模拟添加新文件
-    const newReport = {
-      id: reports.length + 1,
-      name: newFileName.endsWith('.docx') ? newFileName : `${newFileName}.docx`,
-      date: new Date().toISOString().split('T')[0],
-      size: `${(Math.random() * 3 + 0.5).toFixed(1)}MB`
-    };
-    
-    setReports([...reports, newReport]);
-    setNewFileName("");
-    setShowUploadDialog(false);
-  };
-
-  return (
-    <Card className="p-6">
-      <div className="grid grid-cols-1 gap-6">
-        <div className="bg-gray-50 p-4 rounded-md">
-          <div className="flex justify-between items-center mb-3">
-            <h3 className="text-lg font-medium">工作提升报告</h3>
-            <Button 
-              onClick={() => setShowUploadDialog(true)}
-              size="sm"
-              className="bg-green-500 hover:bg-green-600 text-white"
-            >
-              上传新报告
-            </Button>
-          </div>
-          
-          <div className="bg-white rounded-md shadow-sm border border-gray-100">
-            {reports.length === 0 ? (
-              <div className="p-8 text-center text-gray-500">
-                暂无报告文件
-              </div>
-            ) : (
-              <ul className="divide-y divide-gray-200">
-                {reports.map(report => (
-                  <li key={report.id} className="p-4 flex items-center justify-between hover:bg-gray-50">
-                    <div className="flex items-center">
-                      <div className="p-2 bg-blue-50 rounded mr-3">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                        </svg>
-                      </div>
-                      <div>
-                        <p className="font-medium text-gray-800">{report.name}</p>
-                        <p className="text-sm text-gray-500">上传于 {report.date} · {report.size}</p>
-                      </div>
-                    </div>
-                    <div className="flex space-x-2">
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
-                        className="text-gray-600 border-gray-300"
-                      >
-                        下载
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
-                        className="text-red-600 border-red-300 hover:bg-red-50"
-                        onClick={() => handleDelete(report.id)}
-                      >
-                        删除
-                      </Button>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* 上传对话框 */}
-      <Dialog open={showUploadDialog} onOpenChange={setShowUploadDialog}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>上传工作提升报告</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <label htmlFor="fileName" className="text-sm font-medium">
-                文件名称
-              </label>
-              <Input
-                id="fileName"
-                placeholder="请输入文件名称"
-                value={newFileName}
-                onChange={(e) => setNewFileName(e.target.value)}
-              />
-              <p className="text-xs text-gray-500">
-                如不包含扩展名，将自动添加.docx后缀
-              </p>
-            </div>
-            <div className="border-2 border-dashed border-gray-300 rounded-md p-6 text-center">
-              <label htmlFor="file-upload" className="cursor-pointer">
-                <span className="flex flex-col items-center text-sm text-[#3C5E5C] hover:text-[#2A4A48]">
-                  <svg className="w-10 h-10 mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-                  </svg>
-                  <span>点击选择文件</span>
-                  <span className="text-xs text-gray-500 mt-1">支持 .docx, .doc 格式</span>
-                </span>
-              </label>
-              <input
-                type="file"
-                id="file-upload"
-                accept=".doc,.docx"
-                className="hidden"
-              />
-            </div>
-          </div>
-          <div className="flex justify-end space-x-2 pt-2">
-            <Button variant="outline" onClick={() => setShowUploadDialog(false)}>
-              取消
-            </Button>
-            <Button onClick={handleUpload} disabled={!newFileName.trim()}>
-              上传
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-    </Card>
-  );
-};
-
 /**
  * Talent摘要简报内容组件
  * @returns {React.ReactElement} Talent摘要简报内容

@@ -6,14 +6,14 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { PlusIcon, EditIcon, XIcon } from "@/components/icons/index";
 import { Check as CheckIcon } from "lucide-react";
-import { useState, ChangeEvent } from "react";
+import { useState, ChangeEvent, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import MatchingPage from "./matching-page";
 import HorizontalComparisonModal from "./horizontal-comparison-modal";
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   VisionSpiritContent,
   BasicInfoContent,
@@ -24,8 +24,6 @@ import {
   PersonalInfoContent,
   DevelopmentPlanContent,
   TeamAssessmentContent,
-  OrganizationFeedbackContent,
-  WorkImprovementReportContent,
   TalentSummaryContent
 } from './profile-detail';
 import ProfileNavTabs from './components/ProfileNavTabs';
@@ -85,6 +83,7 @@ interface PositionItem {
  */
 export default function TalentStandardsPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [showPositions, setShowPositions] = useState(false);
   const [selectedPosition, setSelectedPosition] = useState("");
   const [showEmployeeList, setShowEmployeeList] = useState(false);
@@ -956,6 +955,23 @@ export default function TalentStandardsPage() {
   // 添加人才履历标签导航状态
   const [activeProfileTab, setActiveProfileTab] = useState('远景精神');
 
+  // 监听URL参数tab，自动切换人才履历子Tab
+  useEffect(() => {
+    if (!searchParams) return;
+    const tabParam = searchParams.get('tab');
+    if (tabParam) {
+      if (tabParam === 'jobModel') {
+        setActiveProfileTab('岗位模型');
+      } else if (tabParam === 'baseInfo') {
+        setActiveProfileTab('基本信息');
+      } else if (tabParam === 'okr') {
+        setActiveProfileTab('个人OKR');
+      } else if (tabParam === 'review') {
+        setActiveProfileTab('评价');
+      }
+    }
+  }, [searchParams]);
+
   /**
    * 处理人才履历标签切换
    * @param {string} tab - 标签名称
@@ -983,10 +999,6 @@ export default function TalentStandardsPage() {
         return <DevelopmentPlanContent />;
       case '团队盘点':
         return <TeamAssessmentContent />;
-      case '组织回馈':
-        return <OrganizationFeedbackContent />;
-      case '工作提升报告':
-        return <WorkImprovementReportContent />;
       case '人岗匹配':
         return <JobMatchingContent />;
       case '评价':
@@ -1027,12 +1039,30 @@ export default function TalentStandardsPage() {
     '个人OKR',
     '发展规划',
     '团队盘点',
-    '组织回馈',
-    '工作提升报告',
     '人岗匹配',
     '评价',
     'Talent摘要简报'
   ];
+
+  // 1. 在组件顶部添加示例弹窗相关状态
+  /**
+   * 素质类示例弹窗Tab类型
+   * @typedef {'professional'|'leadership'|'general'} QualityExampleTab
+   */
+  const [showQualityExampleDialog, setShowQualityExampleDialog] = useState(false);
+  const [qualityExampleTab, setQualityExampleTab] = useState<'professional'|'leadership'|'general'>('professional');
+
+  // 4. 在组件顶部添加知识技能类示例弹窗状态
+  const [showKnowledgeExampleDialog, setShowKnowledgeExampleDialog] = useState(false);
+
+  // 1. 新增主Tab状态
+  const [mainTab, setMainTab] = useState("ability"); // ability/profile/matching
+
+  // 3. 新增：用于外部切换Tab的函数
+  const jumpToProfileJobModel = () => {
+    setMainTab("profile");
+    setActiveProfileTab("岗位模型");
+  };
 
   return (
     <div className="h-full pt-1 px-6 pb-4 space-y-2 bg-[#F3F7FA]">
@@ -1041,13 +1071,13 @@ export default function TalentStandardsPage() {
         <p className="text-sm text-gray-500">管理能力库、岗位模型和人才履历</p>
       </div>
 
-      <Tabs defaultValue="ability" className="w-full mt-8">
+      <Tabs value={mainTab} onValueChange={setMainTab} defaultValue="ability" className="w-full mt-8">
         <TabsList className="w-full flex justify-start space-x-6 border-b border-gray-200 bg-transparent p-0">
           <TabsTrigger
             value="ability"
             className="px-4 py-2 data-[state=active]:border-b-2 data-[state=active]:border-[#3C5E5C] data-[state=active]:font-medium data-[state=active]:text-gray-900 text-gray-500 rounded-none bg-transparent hover:text-gray-900 data-[state=active]:shadow-none"
           >
-            能力库&能力模型
+            能力库
           </TabsTrigger>
           <TabsTrigger
             value="profile"
@@ -1070,7 +1100,8 @@ export default function TalentStandardsPage() {
               <CardHeader className="flex flex-row items-center justify-between py-4 px-6 border-b border-gray-100">
                 <CardTitle style={{ color: '#3C5E5C' }} className="text-sm font-medium">能力库管理</CardTitle>
                 <div className="flex space-x-2">
-                  {/* 移除顶部的创建按钮 */}
+                  {/* 彻底删除原有的 Dialog 示例按钮，只保留其他按钮 */}
+                  {/* 其他按钮保留 */}
                 </div>
               </CardHeader>
               <CardContent className="p-6">
@@ -1079,13 +1110,20 @@ export default function TalentStandardsPage() {
                   {/* 知识技能类卡片 */}
                   {abilities.filter(ability => ability.type === "知识技能").map((ability) => (
                     <div key={ability.id} className="rounded-lg border border-gray-200 bg-white transition-shadow flex flex-col min-h-[500px]">
-                      <div className="p-4 border-b border-gray-100">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <h3 className="font-semibold text-sm text-gray-800 mb-2">{ability.name}</h3>
-                            <p className="text-sm text-gray-600">{ability.description}</p>
-                          </div>
+                      <div className="p-4 border-b border-gray-100 flex justify-between items-start">
+                        <div>
+                          <h3 className="font-semibold text-sm text-gray-800 mb-2">{ability.name}</h3>
+                          <p className="text-sm text-gray-600">{ability.description}</p>
                         </div>
+                        {/* 新增：知识技能类示例按钮 */}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-xs ml-2"
+                          onClick={() => setShowKnowledgeExampleDialog(true)}
+                        >
+                          示例
+                        </Button>
                       </div>
 
                       <div className="flex flex-1 h-[calc(100%-80px)]">
@@ -1467,13 +1505,20 @@ export default function TalentStandardsPage() {
                   {/* 素质类卡片 - 重构为左右布局 */}
                   {abilities.filter(ability => ability.type === "素质").map((ability) => (
                     <div key={ability.id} className="rounded-lg border border-gray-200 bg-white transition-shadow flex flex-col min-h-[500px]">
-                      <div className="p-4 border-b border-gray-100">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <h3 className="font-semibold text-sm text-gray-800 mb-2">{ability.name}</h3>
-                            <p className="text-sm text-gray-600">{ability.description}</p>
-                          </div>
+                      <div className="p-4 border-b border-gray-100 flex justify-between items-start">
+                        <div>
+                          <h3 className="font-semibold text-sm text-gray-800 mb-2">{ability.name}</h3>
+                          <p className="text-sm text-gray-600">{ability.description}</p>
                         </div>
+                        {/* 新增：示例按钮 */}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-xs ml-2"
+                          onClick={() => setShowQualityExampleDialog(true)}
+                        >
+                          示例
+                        </Button>
                       </div>
 
                       <div className="flex flex-1 h-[calc(100%-80px)]">
@@ -1865,7 +1910,7 @@ export default function TalentStandardsPage() {
 
         {/* 人岗匹配模块 */}
         <TabsContent value="matching" className="mt-6">
-          <MatchingPage />
+          <MatchingPage onJumpToProfileJobModel={jumpToProfileJobModel} />
         </TabsContent>
       </Tabs>
 
@@ -2569,6 +2614,115 @@ export default function TalentStandardsPage() {
             >
               创建
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* 在页面底部添加素质类示例弹窗 */}
+      <Dialog open={showQualityExampleDialog} onOpenChange={setShowQualityExampleDialog}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>素质类能力项填写示例</DialogTitle>
+          </DialogHeader>
+          {/* Tab切换 */}
+          <div className="flex space-x-2 mb-4">
+            <Button
+              variant={qualityExampleTab === 'professional' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setQualityExampleTab('professional')}
+            >专业素质</Button>
+            <Button
+              variant={qualityExampleTab === 'leadership' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setQualityExampleTab('leadership')}
+            >领导力素质</Button>
+            <Button
+              variant={qualityExampleTab === 'general' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setQualityExampleTab('general')}
+            >通用素质</Button>
+          </div>
+          {/* 示例内容渲染 */}
+          {qualityExampleTab === 'professional' && (
+            <div className="space-y-2 text-sm text-gray-700">
+              <div><b>素质编码：</b> F-PRO-001</div>
+              <div><b>素质名称：</b> 沟通协作</div>
+              <div><b>素质类型：</b> 专业素质</div>
+              <div><b>素质定义：</b> 能够有效协调团队成员达成目标</div>
+              <div><b>适用岗位：</b> 所有岗位</div>
+              <div><b>能力等级描述：</b></div>
+              <ul className="pl-5 list-disc text-xs text-gray-600">
+                <li><b>1：</b> 能够理解团队目标，参与团队讨论</li>
+                <li><b>2：</b> 能主动表达观点，配合他人完成任务</li>
+                <li><b>3：</b> 能协调团队成员解决分歧</li>
+                <li><b>4：</b> 能带领小组高效协作</li>
+                <li><b>5：</b> 能推动跨部门团队达成复杂目标</li>
+              </ul>
+            </div>
+          )}
+          {qualityExampleTab === 'leadership' && (
+            <div className="space-y-2 text-sm text-gray-700">
+              <div><b>素质编码：</b> L-LEAD-102</div>
+              <div><b>素质名称：</b> 战略决策能力</div>
+              <div><b>素质类型：</b> 领导力素质</div>
+              <div><b>核心定义：</b> 能在不确定性中做出推动业务突破的决策</div>
+              <div><b>适用层级：</b> M4（副总裁及以上）</div>
+              <div><b>能力等级描述：</b></div>
+              <ul className="pl-5 list-disc text-xs text-gray-600">
+                <li><b>1：</b> 能理解公司战略方向</li>
+                <li><b>2：</b> 能参与部门战略讨论</li>
+                <li><b>3：</b> 能独立制定本部门发展规划</li>
+                <li><b>4：</b> 能主导制定3-5年战略规划并推动落地</li>
+                <li><b>5：</b> 能引领公司实现战略性突破</li>
+              </ul>
+            </div>
+          )}
+          {qualityExampleTab === 'general' && (
+            <div className="space-y-2 text-sm text-gray-700">
+              <div><b>素质编码：</b> G-COM-001</div>
+              <div><b>素质名称：</b> 沟通能力</div>
+              <div><b>素质类型：</b> 通用素质</div>
+              <div><b>核心定义：</b> 能有效传递信息并协调多方达成共识</div>
+              <div><b>适用岗位：</b> 所有岗位</div>
+              <div><b>能力等级描述：</b></div>
+              <ul className="pl-5 list-disc text-xs text-gray-600">
+                <li><b>1：</b> 能清楚表达基本信息</li>
+                <li><b>2：</b> 能主动倾听他人意见</li>
+                <li><b>3：</b> 能协调多方意见达成共识</li>
+                <li><b>4：</b> 能在复杂场景下高效沟通</li>
+                <li><b>5：</b> 能影响和引导他人观点</li>
+              </ul>
+            </div>
+          )}
+          <div className="flex justify-end mt-4">
+            <Button onClick={() => setShowQualityExampleDialog(false)}>关闭</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* 在页面底部添加知识技能类示例弹窗 */}
+      <Dialog open={showKnowledgeExampleDialog} onOpenChange={setShowKnowledgeExampleDialog}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>知识技能类能力项填写示例</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-2 text-sm text-gray-700">
+            <div><b>能力编码：</b> K001</div>
+            <div><b>能力名称：</b> 财务报表分析</div>
+            <div><b>能力类型：</b> 知识技能类</div>
+            <div><b>能力定义：</b> 能运用Python完成数据清洗和可视化分析</div>
+            <div><b>适用岗位：</b> 财务岗, 数据分析岗</div>
+            <div><b>能力等级描述：</b></div>
+            <ul className="pl-5 list-disc text-xs text-gray-600">
+              <li><b>1：</b> 能够识别基本财务报表结构</li>
+              <li><b>2：</b> 能够独立完成常规财务数据录入</li>
+              <li><b>3：</b> 能够分析财务报表并发现异常</li>
+              <li><b>4：</b> 能够结合业务场景进行多维度分析</li>
+              <li><b>5：</b> 能够设计自动化分析流程并指导他人</li>
+            </ul>
+          </div>
+          <div className="flex justify-end mt-4">
+            <Button onClick={() => setShowKnowledgeExampleDialog(false)}>关闭</Button>
           </div>
         </DialogContent>
       </Dialog>

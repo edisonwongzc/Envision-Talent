@@ -147,7 +147,9 @@ export default function QualificationManagementPage() {
         { date: "2022-12-15", level: "P5", result: "通过", evaluator: "技术评审委员会" },
         { date: "2021-06-10", level: "P4", result: "通过", evaluator: "技术评审委员会" },
         { date: "2020-01-15", level: "P3", result: "通过", evaluator: "部门评审小组" }
-      ]
+      ],
+      knowledgeSkillScore: 92,
+      keyAbilityScore: 88
     },
     {
       id: "EMP031",
@@ -171,7 +173,9 @@ export default function QualificationManagementPage() {
       reviewHistory: [
         { date: "2022-06-20", level: "P4", result: "通过", evaluator: "产品评审委员会" },
         { date: "2020-05-18", level: "P3", result: "通过", evaluator: "部门评审小组" }
-      ]
+      ],
+      knowledgeSkillScore: 85,
+      keyAbilityScore: 90
     },
     {
       id: "EMP015",
@@ -191,10 +195,19 @@ export default function QualificationManagementPage() {
       visionScores: [3.8, 4.0, 3.9],
       currentLevel: "P3",
       certificationDate: "2022-03-10",
-      processStatus: "", // 空表示未开始流程
+      processStatus: "审核中",
       reviewHistory: [
-        { date: "2022-03-10", level: "P3", result: "通过", evaluator: "部门评审小组" }
-      ]
+        { date: "2023-01-05", level: "申请四级", result: "已提交", evaluator: "吴十" },
+        { date: "2023-01-08", level: "HRBP审核", result: "通过", evaluator: "HRBP王丽" },
+        { date: "2023-01-10", level: "直接主管审核", result: "通过", evaluator: "李经理" },
+        { date: "2023-01-12", level: "公示", result: "无异议", evaluator: "系统自动" },
+        { date: "2023-01-15", level: "评委集中评议", result: "85分，意见良好", evaluator: "评委组" },
+        { date: "2023-01-18", level: "平台专委会审核", result: "通过", evaluator: "平台专委会" },
+        { date: "2023-01-20", level: "公司人委会审核", result: "通过", evaluator: "公司人委会" },
+        { date: "2023-01-22", level: "公示", result: "无异议", evaluator: "系统自动" }
+      ],
+      knowledgeSkillScore: 78,
+      keyAbilityScore: 80
     }
   ];
 
@@ -581,6 +594,29 @@ export default function QualificationManagementPage() {
     );
   };
 
+  // 1. 在组件顶部添加排序状态
+  const [knowledgeSkillSort, setKnowledgeSkillSort] = useState<'desc'|'asc'>('desc');
+  const [keyAbilitySort, setKeyAbilitySort] = useState<'desc'|'asc'>('desc');
+
+  // 3. 排序后的数据
+  const sortedEmployeeData = [...employeeData].sort((a, b) => {
+    if (keyAbilitySort !== knowledgeSkillSort) {
+      // 如果点击了关键能力排序，则只按关键能力分数排序
+      if (keyAbilitySort === 'desc') {
+        return b.keyAbilityScore - a.keyAbilityScore;
+      } else {
+        return a.keyAbilityScore - b.keyAbilityScore;
+      }
+    } else {
+      // 否则只按知识技能分数排序
+      if (knowledgeSkillSort === 'desc') {
+        return b.knowledgeSkillScore - a.knowledgeSkillScore;
+      } else {
+        return a.knowledgeSkillScore - b.knowledgeSkillScore;
+      }
+    }
+  });
+
   return (
     <div className="h-full pt-1 px-6 pb-4 space-y-2 bg-[#f4f7fa]">
       <div className="mb-1">
@@ -888,40 +924,37 @@ export default function QualificationManagementPage() {
                           </span>
                         </th>
                       )}
-                      <th scope="col" className="px-4 py-3 text-center text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-20">
-                        头像
+                      <th scope="col" className="px-4 py-3 text-center text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-20">头像</th>
+                      <th scope="col" className="px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-24">申请人工号</th>
+                      <th scope="col" className="px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-24">申请人姓名</th>
+                      <th scope="col" className="px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-24">部门</th>
+                      <th scope="col" className="px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-24">岗位</th>
+                      {/* 新增：知识技能列 */}
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                        <button type="button" className="flex items-center cursor-pointer select-none" onClick={() => setKnowledgeSkillSort(knowledgeSkillSort === 'desc' ? 'asc' : 'desc')}>
+                          知识技能
+                          <span className="ml-1 inline-block align-middle">
+                            {knowledgeSkillSort === 'desc' ? '↓' : '↑'}
+                          </span>
+                        </button>
                       </th>
-                      <th scope="col" className="px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-24">
-                        申请人工号
+                      {/* 新增：关键能力列 */}
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                        <button type="button" className="flex items-center cursor-pointer select-none" onClick={() => setKeyAbilitySort(keyAbilitySort === 'desc' ? 'asc' : 'desc')}>
+                          关键能力
+                          <span className="ml-1 inline-block align-middle">
+                            {keyAbilitySort === 'desc' ? '↓' : '↑'}
+                          </span>
+                        </button>
                       </th>
-                      <th scope="col" className="px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-24">
-                        申请人姓名
-                      </th>
-                      <th scope="col" className="px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-28">
-                        近三年挑战级别
-                      </th>
-                      <th scope="col" className="px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-28">
-                        近三年绩效结果
-                      </th>
-                      <th scope="col" className="px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-28">
-                        近三年远景精神
-                      </th>
-                      <th scope="col" className="px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-36">
-                        当前职级认证时间
-                      </th>
-                      <th scope="col" className="px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-24">
-                        当前技术职级
-                      </th>
-                      <th scope="col" className="px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-24">
-                        流程状态
-                      </th>
-                      <th scope="col" className="px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-24">
-                        操作
-                      </th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-36">当前职级认证时间</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-24">当前技术职级</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-24">流程状态</th>
+                      <th scope="col" className="px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-24">操作</th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {employeeData.map((employee) => (
+                    {sortedEmployeeData.map((employee) => (
                       <tr key={employee.id} className="hover:bg-gray-50">
                         {showReviewSelectionMode && (
                           <td className="pl-4 py-3 whitespace-nowrap">
@@ -953,25 +986,16 @@ export default function QualificationManagementPage() {
                           <div className="text-sm font-medium text-gray-900">{employee.name}</div>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">
-                            {employee.challengeLevels ? employee.challengeLevels.join('/') : ''}
-                          </div>
+                          <div className="text-sm font-medium text-gray-900">{employee.department}</div>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">
-                            {employee.performanceResults ? employee.performanceResults.join('/') : ''}
-                          </div>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">
-                            {employee.visionScores ? employee.visionScores.join('/') : ''}
-                </div>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">{employee.certificationDate}</div>
+                          <div className="text-sm font-medium text-gray-900">{employee.position}</div>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
                           <div className="text-sm font-medium text-gray-900">{employee.currentLevel}</div>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                          <div className="text-sm font-medium text-gray-900">{employee.certificationDate}</div>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
                           <span 
@@ -1246,245 +1270,88 @@ export default function QualificationManagementPage() {
               </Button>
             </CardHeader>
             <CardContent className="p-6">
-              <div className="space-y-4">
-                <div className="overflow-x-auto border border-gray-200 rounded-lg">
-                  <table className="min-w-[1200px] w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th scope="col" className="px-4 py-3 text-center text-sm font-medium text-gray-500 uppercase tracking-wider">
-                          头像
-                        </th>
-                        <th scope="col" className="px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">
-                          员工姓名
-                        </th>
-                        <th scope="col" className="px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">
-                          员工ID
-                        </th>
-                        <th scope="col" className="px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">
-                          所在部门
-                        </th>
-                        <th scope="col" className="px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">
-                          当前岗位
-                        </th>
-                        <th scope="col" className="px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">
-                          认证状态
-                        </th>
-                        <th scope="col" className="px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">
-                          操作
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      <tr>
+              <div className="overflow-x-auto border border-gray-200 rounded-lg">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-4 py-3 text-center text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-20">头像</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-24">申请人工号</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-24">申请人姓名</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-24">部门</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-24">岗位</th>
+                      {/* 新增：知识技能列 */}
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                        <button type="button" className="flex items-center cursor-pointer select-none" onClick={() => setKnowledgeSkillSort(knowledgeSkillSort === 'desc' ? 'asc' : 'desc')}>
+                          知识技能
+                          <span className="ml-1 inline-block align-middle">
+                            {knowledgeSkillSort === 'desc' ? '↓' : '↑'}
+                          </span>
+                        </button>
+                      </th>
+                      {/* 新增：关键能力列 */}
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                        <button type="button" className="flex items-center cursor-pointer select-none" onClick={() => setKeyAbilitySort(keyAbilitySort === 'desc' ? 'asc' : 'desc')}>
+                          关键能力
+                          <span className="ml-1 inline-block align-middle">
+                            {keyAbilitySort === 'desc' ? '↓' : '↑'}
+                          </span>
+                        </button>
+                      </th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-36">当前职级认证时间</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-24">当前技术职级</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-24">流程状态</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-24">操作</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {sortedEmployeeData.map(emp => (
+                      <tr key={emp.id}>
                         <td className="px-4 py-3 whitespace-nowrap text-center">
                           <div className="flex-shrink-0 h-10 w-10 rounded-full overflow-hidden shadow-md mx-auto">
-                            <img src="https://images.unsplash.com/photo-1564564321837-a57b7070ac4f?w=300&auto=format&fit=crop&q=60" alt="员工头像" className="h-10 w-10 object-cover" />
-                      </div>
+                            <img src={emp.avatar} alt="员工头像" className="h-10 w-10 object-cover" />
+                          </div>
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">李十三</div>
+                          <div className="text-sm font-medium text-gray-900">{emp.id}</div>
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">EMP001</div>
+                          <div className="text-sm font-medium text-gray-900">{emp.name}</div>
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">研发部</div>
+                          <div className="text-sm font-medium text-gray-900">{emp.department}</div>
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">高级工程师</div>
+                          <div className="text-sm font-medium text-gray-900">{emp.position}</div>
+                        </td>
+                        {/* 新增：知识技能分数 */}
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <div className="text-sm font-medium text-blue-700">{emp.knowledgeSkillScore}</div>
+                        </td>
+                        {/* 新增：关键能力分数 */}
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <div className="text-sm font-medium text-green-700">{emp.keyAbilityScore}</div>
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="px-2 py-1 bg-green-100 text-green-700 text-sm rounded-full inline-block">P5 资格认证通过</div>
+                          <div className="text-sm font-medium text-gray-900">{emp.certificationDate}</div>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <div className="text-sm font-medium text-gray-900">{emp.currentLevel}</div>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <div className="text-sm font-medium text-gray-900">{emp.processStatus || '-'}</div>
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap text-left">
                           <span 
                             className="text-sm text-[#3C5E5C] cursor-pointer hover:underline"
-                            onClick={() => viewEmployeeDetail("EMP001")}
+                            onClick={() => viewEmployeeDetail(emp.id)}
                           >
                             查看个人详情
                           </span>
                         </td>
                       </tr>
-                      
-                      <tr>
-                        <td className="px-4 py-3 whitespace-nowrap text-center">
-                          <div className="flex-shrink-0 h-10 w-10 rounded-full overflow-hidden shadow-md mx-auto">
-                            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&auto=format&fit=crop&q=60" alt="员工头像" className="h-10 w-10 object-cover" />
-                    </div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">吴十</div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">EMP015</div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">研发部</div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">工程师</div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="px-2 py-1 bg-amber-100 text-amber-700 text-sm rounded-full inline-block">P4 资格认证中</div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-left">
-                          <span 
-                            className="text-sm text-[#3C5E5C] cursor-pointer hover:underline"
-                            onClick={() => viewEmployeeDetail("EMP015")}
-                          >
-                            查看个人详情
-                          </span>
-                        </td>
-                      </tr>
-                      
-                      <tr>
-                        <td className="px-4 py-3 whitespace-nowrap text-center">
-                          <div className="flex-shrink-0 h-10 w-10 rounded-full overflow-hidden shadow-md mx-auto">
-                            <img src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=60" alt="员工头像" className="h-10 w-10 object-cover" />
-                  </div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">赵六</div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">EMP031</div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">产品部</div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">产品经理</div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="px-2 py-1 bg-red-100 text-red-700 text-sm rounded-full inline-block">P4 资格认证未通过</div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-left">
-                          <span className="text-sm text-[#3C5E5C] cursor-pointer hover:underline">查看个人详情</span>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-                
-                <div className="mt-6">
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-sm font-medium" style={{color: '#3C5E5C'}}>人岗匹配分析</h3>
-                    <Button variant="outline" className="text-sm h-8 text-gray-600 border-gray-300 bg-transparent">
-                      筛选
-                    </Button>
-                  </div>
-                  <div className="h-[420px] p-4 relative">
-                    <div className="absolute right-6 top-6 flex flex-col gap-2 z-10">
-                      <button className="w-8 h-8 rounded-md bg-white border border-gray-300 flex items-center justify-center text-gray-600 hover:bg-gray-50">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <circle cx="11" cy="11" r="8"></circle>
-                          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                          <line x1="11" y1="8" x2="11" y2="14"></line>
-                          <line x1="8" y1="11" x2="14" y2="11"></line>
-                        </svg>
-                      </button>
-                      <button className="w-8 h-8 rounded-md bg-white border border-gray-300 flex items-center justify-center text-gray-600 hover:bg-gray-50">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <circle cx="11" cy="11" r="8"></circle>
-                          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                          <line x1="8" y1="11" x2="14" y2="11"></line>
-                        </svg>
-                      </button>
-                    </div>
-                    <div className="h-full flex items-center justify-center">
-                      <svg width="100%" height="100%" viewBox="0 0 700 400">
-                        <defs>
-                          <pattern id="avatar1" patternUnits="userSpaceOnUse" width="40" height="40">
-                            <image href="https://images.unsplash.com/photo-1564564321837-a57b7070ac4f?w=300&auto=format&fit=crop&q=60" width="40" height="40" />
-                          </pattern>
-                          <pattern id="avatar2" patternUnits="userSpaceOnUse" width="60" height="60">
-                            <image href="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=60" width="60" height="60" />
-                          </pattern>
-                          <pattern id="avatar3" patternUnits="userSpaceOnUse" width="80" height="80">
-                            <image href="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&auto=format&fit=crop&q=60" width="80" height="80" />
-                          </pattern>
-                        </defs>
-
-                        {/* 背景和边框 */}
-                        <rect x="60" y="20" width="600" height="340" fill="white" stroke="#E5E7EB" strokeWidth="1" />
-
-                        {/* X轴 */}
-                        <line x1="60" y1="360" x2="660" y2="360" stroke="#94A3B8" strokeWidth="1" />
-                        <text x="680" y="360" fontSize="12" fill="#64748B">挑战者级别</text>
-                        
-                        {/* X轴刻度 */}
-                        <g className="text-xs fill-gray-500">
-                          <text x="100" y="380" textAnchor="middle">13</text>
-                          <text x="180" y="380" textAnchor="middle">14</text>
-                          <text x="260" y="380" textAnchor="middle">15</text>
-                          <text x="340" y="380" textAnchor="middle">16</text>
-                          <text x="420" y="380" textAnchor="middle">17</text>
-                          <text x="500" y="380" textAnchor="middle">18</text>
-                          <text x="580" y="380" textAnchor="middle">19+</text>
-                        </g>
-
-                        {/* Y轴 */}
-                        <line x1="60" y1="20" x2="60" y2="360" stroke="#94A3B8" strokeWidth="1" />
-                        <text x="30" y="10" fontSize="12" fill="#64748B">专业任职级别</text>
-
-                        {/* Y轴刻度 */}
-                        <g className="text-xs fill-gray-500">
-                          <text x="40" y="340" textAnchor="end">T3</text>
-                          <text x="40" y="280" textAnchor="end">T4</text>
-                          <text x="40" y="220" textAnchor="end">T5</text>
-                          <text x="40" y="160" textAnchor="end">T6</text>
-                          <text x="40" y="100" textAnchor="end">T7</text>
-                        </g>
-
-                        {/* 网格线 */}
-                        <g stroke="#E5E7EB" strokeWidth="1" strokeDasharray="4">
-                          <line x1="60" y1="340" x2="660" y2="340" />
-                          <line x1="60" y1="280" x2="660" y2="280" />
-                          <line x1="60" y1="220" x2="660" y2="220" />
-                          <line x1="60" y1="160" x2="660" y2="160" />
-                          <line x1="60" y1="100" x2="660" y2="100" />
-                          
-                          <line x1="100" y1="20" x2="100" y2="360" />
-                          <line x1="180" y1="20" x2="180" y2="360" />
-                          <line x1="260" y1="20" x2="260" y2="360" />
-                          <line x1="340" y1="20" x2="340" y2="360" />
-                          <line x1="420" y1="20" x2="420" y2="360" />
-                          <line x1="500" y1="20" x2="500" y2="360" />
-                          <line x1="580" y1="20" x2="580" y2="360" />
-                        </g>
-
-                        {/* 气泡 */}
-                        <g>
-                          {/* T5级别气泡组 */}
-                          <circle cx="340" cy="220" r="35" fill="#ec693d" stroke="#ffffff" strokeWidth="2" />
-                          <text x="340" y="220" dy="0.3em" textAnchor="middle" dominantBaseline="middle" fill="#ffffff" fontSize="12">12人</text>
-                          
-                          <circle cx="420" cy="220" r="28" fill="#6930ee" stroke="#ffffff" strokeWidth="2" />
-                          <text x="420" y="220" dy="0.3em" textAnchor="middle" dominantBaseline="middle" fill="#ffffff" fontSize="12">8人</text>
-                          
-                          {/* T4级别气泡组 */}
-                          <circle cx="180" cy="280" r="32" fill="#dcd152" stroke="#ffffff" strokeWidth="2" />
-                          <text x="180" y="280" dy="0.3em" textAnchor="middle" dominantBaseline="middle" fill="#ffffff" fontSize="12">10人</text>
-                          
-                          <circle cx="260" cy="280" r="25" fill="#5ab049" stroke="#ffffff" strokeWidth="2" />
-                          <text x="260" y="280" dy="0.3em" textAnchor="middle" dominantBaseline="middle" fill="#ffffff" fontSize="12">6人</text>
-                          
-                          {/* T6级别气泡组 */}
-                          <circle cx="500" cy="160" r="30" fill="#c868b5" stroke="#ffffff" strokeWidth="2" />
-                          <text x="500" y="160" dy="0.3em" textAnchor="middle" dominantBaseline="middle" fill="#ffffff" fontSize="12">9人</text>
-                          
-                          {/* T3级别气泡组 */}
-                          <circle cx="340" cy="340" r="22" fill="#f1ab64" stroke="#ffffff" strokeWidth="2" />
-                          <text x="340" y="340" dy="0.3em" textAnchor="middle" dominantBaseline="middle" fill="#ffffff" fontSize="12">5人</text>
-                          
-                          {/* T7级别气泡组 */}
-                          <circle cx="580" cy="100" r="20" fill="#ec693d" stroke="#ffffff" strokeWidth="2" />
-                          <text x="580" y="100" dy="0.3em" textAnchor="middle" dominantBaseline="middle" fill="#ffffff" fontSize="12">4人</text>
-                        </g>
-                      </svg>
-                    </div>
-                  </div>
-                </div>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </CardContent>
           </Card>
@@ -1585,7 +1452,7 @@ export default function QualificationManagementPage() {
                     <thead className="bg-gray-50">
                       <tr>
                         <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">认证时间</th>
-                        <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">认证等级</th>
+                        <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">认证状态</th>
                         <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">认证结果</th>
                         <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">评审组织</th>
                       </tr>

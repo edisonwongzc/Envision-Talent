@@ -24,8 +24,6 @@ const ProfileNavTabs: React.FC<ProfileNavTabsProps> = ({ activeTab, onTabChange 
     '个人OKR',
     '发展规划',
     '团队盘点',
-    '组织回馈',
-    '工作提升报告',
     '人岗匹配',
     '评价',
     'Talent摘要简报'

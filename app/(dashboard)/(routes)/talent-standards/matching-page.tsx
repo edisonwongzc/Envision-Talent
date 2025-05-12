@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { useRouter } from 'next/navigation';
 
 /**
  * 岗位信息接口定义
@@ -72,7 +73,15 @@ interface MatchedTalent {
   matchRate: number;
 }
 
-const MatchingPage = () => {
+/**
+ * MatchingPage 组件Props类型
+ * @param {Function} onJumpToProfileJobModel - 跳转到人才履历Tab下岗位模型的回调
+ */
+interface MatchingPageProps {
+  onJumpToProfileJobModel?: () => void;
+}
+
+const MatchingPage: React.FC<MatchingPageProps> = ({ onJumpToProfileJobModel }) => {
   const [showComparisonModal, setShowComparisonModal] = useState(false);
   const [selectedEmployees, setSelectedEmployees] = useState(['Jay', 'Caicai Yang', 'Anders', 'Anthony']);
   
@@ -408,6 +417,20 @@ const MatchingPage = () => {
     departments: ["研发部", "产品部", "技术部", "前端部", "架构组", "数据部"]
   });
   
+  // 排序相关状态
+  /**
+   * 能力表格排序字段
+   * @type {"name"|"level"|null}
+   */
+  const [sortField, setSortField] = useState<"name"|"level"|null>(null);
+  /**
+   * 能力表格排序顺序
+   * @type {"asc"|"desc"}
+   */
+  const [sortOrder, setSortOrder] = useState<"asc"|"desc">("asc");
+  
+  const router = useRouter();
+  
   // 切换岗位
   const handlePositionChange = (positionId: string) => {
     setSelectedPositionId(positionId);
@@ -587,6 +610,29 @@ const MatchingPage = () => {
     return talents.find(talent => talent.name === employeeName) || null;
   };
   
+  /**
+   * 排序并返回能力要求数组
+   * @param {CapabilityRequirement[]} data - 原始能力数组
+   * @returns {CapabilityRequirement[]} 排序后的能力数组
+   */
+  function getSortedCapabilities(data: CapabilityRequirement[]): CapabilityRequirement[] {
+    if (!sortField) return data;
+    return [...data].sort((a, b) => {
+      if (sortField === "name") {
+        return sortOrder === "asc"
+          ? a.name.localeCompare(b.name, "zh-Hans-CN")
+          : b.name.localeCompare(a.name, "zh-Hans-CN");
+      }
+      if (sortField === "level") {
+        // 假设等级为字符串，按字母或汉字排序
+        return sortOrder === "asc"
+          ? a.level.localeCompare(b.level, "zh-Hans-CN")
+          : b.level.localeCompare(a.level, "zh-Hans-CN");
+      }
+      return 0;
+    });
+  }
+  
   return (
     // refreshCounter用于强制组件重新渲染
     <div className="space-y-4" key={`matching-page-${refreshCounter}`}>
@@ -736,11 +782,31 @@ const MatchingPage = () => {
                 <table className="min-w-full divide-y divide-gray-200 border border-gray-200 rounded-lg">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none"
+                        onClick={() => {
+                          if (sortField === "name") {
+                            setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+                          } else {
+                            setSortField("name");
+                            setSortOrder("asc");
+                          }
+                        }}
+                      >
                         能力项
+                        <span className="ml-1">{sortField === "name" ? (sortOrder === "asc" ? "↑" : "↓") : ""}</span>
                       </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none"
+                        onClick={() => {
+                          if (sortField === "level") {
+                            setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+                          } else {
+                            setSortField("level");
+                            setSortOrder("asc");
+                          }
+                        }}
+                      >
                         要求等级
+                        <span className="ml-1">{sortField === "level" ? (sortOrder === "asc" ? "↑" : "↓") : ""}</span>
                       </th>
                       <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         能力描述
@@ -751,7 +817,7 @@ const MatchingPage = () => {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {hardCapabilities.map((capability) => (
+                    {getSortedCapabilities(hardCapabilities).map((capability) => (
                       <tr key={capability.id}>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm font-medium text-gray-900">{capability.name}</div>
@@ -776,14 +842,22 @@ const MatchingPage = () => {
           </div>
         </CardContent>
         <CardFooter className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end">
+          {/**
+           * 岗位模型跳转按钮
+           * @description 点击跳转到"人才履历"模块下的"岗位模型"页面
+           */}
           <Button 
             variant="outline" 
             size="sm" 
             className="text-xs flex items-center gap-1"
-            onClick={openPositionDetail}
+            onClick={() => {
+              if (onJumpToProfileJobModel) {
+                onJumpToProfileJobModel();
+              }
+            }}
           >
             <FileTextIcon size={14} />
-            查看完整岗位说明
+            岗位模型
           </Button>
         </CardFooter>
       </Card>
