@@ -6,22 +6,26 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { PlusIcon, EditIcon, XIcon } from "@/components/icons/index";
 import { Check as CheckIcon } from "lucide-react";
-import { useState, ChangeEvent } from "react";
+import { useState, ChangeEvent, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import MatchingPage from "./matching-page";
 import HorizontalComparisonModal from "./horizontal-comparison-modal";
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   VisionSpiritContent,
-  WorkHistoryContent,
+  BasicInfoContent,
   JobMatchingContent,
   PerformanceContent,
-  ReviewContent
+  ReviewContent,
+  JobModelContent,
+  PersonalInfoContent,
+  DevelopmentPlanContent,
+  TeamAssessmentContent,
+  TalentSummaryContent
 } from './profile-detail';
-import { JobModelContent, PersonalInfoContent } from './components/TabContents';
 import ProfileNavTabs from './components/ProfileNavTabs';
 
 /**
@@ -45,10 +49,11 @@ interface AbilitySkillItem {
   id: string;
   code: string;
   name: string;
-  level: string;
+  level?: string; // 设为可选
   description: string;
   positions: string[];
   createdAt: string;
+  levelDescriptions?: { [key: string]: string };
 }
 
 interface NewAbility {
@@ -60,6 +65,7 @@ interface NewAbility {
   level?: string;
   positions?: string;
   behaviors?: string;
+  levelDescriptions?: { [key: string]: string };
 }
 
 interface PositionItem {
@@ -77,6 +83,7 @@ interface PositionItem {
  */
 export default function TalentStandardsPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [showPositions, setShowPositions] = useState(false);
   const [selectedPosition, setSelectedPosition] = useState("");
   const [showEmployeeList, setShowEmployeeList] = useState(false);
@@ -87,11 +94,20 @@ export default function TalentStandardsPage() {
   const [showHorizontalComparisonModal, setShowHorizontalComparisonModal] = useState(false);
   const [showCreateAbilityDialog, setShowCreateAbilityDialog] = useState(false);
   const [showCreatePositionDialog, setShowCreatePositionDialog] = useState(false);
-  const [newAbility, setNewAbility] = useState<NewAbility>({
+  const [newAbility, setNewAbility] = useState<NewAbility & { levelDescriptions?: { [key: string]: string } }>({
     name: "",
     description: "",
     type: "知识技能",
-    tag: ""
+    tag: "",
+    code: "",
+    positions: "",
+    levelDescriptions: {
+      1: '',
+      2: '',
+      3: '',
+      4: '',
+      5: ''
+    }
   });
   const [newPosition, setNewPosition] = useState({
     name: "",
@@ -328,10 +344,10 @@ export default function TalentStandardsPage() {
       id: Date.now().toString(),
       code: newAbility.code || "",
       name: newAbility.name,
-      level: newAbility.level || "",
-      description: newAbility.description,
+      description: '',
       positions: newAbility.positions ? newAbility.positions.split(',').map(p => p.trim()) : [],
-      createdAt: new Date().toLocaleString()
+      createdAt: new Date().toLocaleString(),
+      levelDescriptions: newAbility.levelDescriptions
     };
 
     // 更新能力库
@@ -359,8 +375,10 @@ export default function TalentStandardsPage() {
       type: ability.type,
       tag: "",
       code: "",
-      level: "",
-      positions: ""
+      positions: "",
+      levelDescriptions: {
+        1: '', 2: '', 3: '', 4: '', 5: ''
+      }
     });
   };
 
@@ -437,6 +455,7 @@ export default function TalentStandardsPage() {
     related_skills?: string;
     job_sequences?: string[];
     searchSequence?: string;
+    levelDescriptions?: { [key: string]: string };
   }>({
     name: "",
     description: "",
@@ -449,7 +468,14 @@ export default function TalentStandardsPage() {
     related_knowledge: "",
     related_skills: "",
     job_sequences: [],
-    searchSequence: ""
+    searchSequence: "",
+    levelDescriptions: {
+      1: '',
+      2: '',
+      3: '',
+      4: '',
+      5: ''
+    }
   });
 
   // 添加处理专业素质表单变更的函数
@@ -494,8 +520,9 @@ export default function TalentStandardsPage() {
       level: newProfessionalAbility.level || "L4",
       description: newProfessionalAbility.level_description || "",
       positions: newProfessionalAbility.positions ? [newProfessionalAbility.positions] : ["财务经理岗"],
-      createdAt: new Date().toISOString()
-    };
+      createdAt: new Date().toISOString(),
+      levelDescriptions: newProfessionalAbility.levelDescriptions // 新增字段
+    } as any;
 
     // 更新能力库
     const updatedAbilities = [...abilities];
@@ -523,7 +550,10 @@ export default function TalentStandardsPage() {
       related_knowledge: "",
       related_skills: "",
       job_sequences: [],
-      searchSequence: ""
+      searchSequence: "",
+      levelDescriptions: {
+        1: '', 2: '', 3: '', 4: '', 5: ''
+      }
     });
 
     setShowCreateProfessionalDialog(false);
@@ -925,6 +955,23 @@ export default function TalentStandardsPage() {
   // 添加人才履历标签导航状态
   const [activeProfileTab, setActiveProfileTab] = useState('远景精神');
 
+  // 监听URL参数tab，自动切换人才履历子Tab
+  useEffect(() => {
+    if (!searchParams) return;
+    const tabParam = searchParams.get('tab');
+    if (tabParam) {
+      if (tabParam === 'jobModel') {
+        setActiveProfileTab('岗位模型');
+      } else if (tabParam === 'baseInfo') {
+        setActiveProfileTab('基本信息');
+      } else if (tabParam === 'okr') {
+        setActiveProfileTab('个人OKR');
+      } else if (tabParam === 'review') {
+        setActiveProfileTab('评价');
+      }
+    }
+  }, [searchParams]);
+
   /**
    * 处理人才履历标签切换
    * @param {string} tab - 标签名称
@@ -940,20 +987,24 @@ export default function TalentStandardsPage() {
    */
   const renderProfileContent = () => {
     switch (activeProfileTab) {
-      case '远景精神':
-        return <VisionSpiritContent />;
-      case '个人信息':
-        return <PersonalInfoContent />;
+      case '基本信息':
+        return <BasicInfoContent />;
       case '岗位模型':
         return <JobModelContent />;
-      case '工作履历':
-        return <WorkHistoryContent />;
+      case '远景精神':
+        return <VisionSpiritContent />;
+      case '个人OKR':
+        return <PerformanceContent />;
+      case '发展规划':
+        return <DevelopmentPlanContent />;
+      case '团队盘点':
+        return <TeamAssessmentContent />;
       case '人岗匹配':
         return <JobMatchingContent />;
-      case '绩效信息':
-        return <PerformanceContent />;
       case '评价':
         return <ReviewContent />;
+      case 'Talent摘要简报':
+        return <TalentSummaryContent />;
       default:
         return (
           <Card className="p-6">
@@ -977,6 +1028,42 @@ export default function TalentStandardsPage() {
   const [selectedQualityItem, setSelectedQualityItem] = useState<AbilitySkillItem | null>(null);
   const [isQualityEditing, setIsQualityEditing] = useState(false);
 
+  // 1. 在组件顶部添加selectedPathLevel状态
+  const [selectedPathLevel, setSelectedPathLevel] = useState<string>('1');
+
+  // 修改导航标签
+  const tabs = [
+    '基本信息',
+    '岗位模型',
+    '远景精神',
+    '个人OKR',
+    '发展规划',
+    '团队盘点',
+    '人岗匹配',
+    '评价',
+    'Talent摘要简报'
+  ];
+
+  // 1. 在组件顶部添加示例弹窗相关状态
+  /**
+   * 素质类示例弹窗Tab类型
+   * @typedef {'professional'|'leadership'|'general'} QualityExampleTab
+   */
+  const [showQualityExampleDialog, setShowQualityExampleDialog] = useState(false);
+  const [qualityExampleTab, setQualityExampleTab] = useState<'professional'|'leadership'|'general'>('professional');
+
+  // 4. 在组件顶部添加知识技能类示例弹窗状态
+  const [showKnowledgeExampleDialog, setShowKnowledgeExampleDialog] = useState(false);
+
+  // 1. 新增主Tab状态
+  const [mainTab, setMainTab] = useState("ability"); // ability/profile/matching
+
+  // 3. 新增：用于外部切换Tab的函数
+  const jumpToProfileJobModel = () => {
+    setMainTab("profile");
+    setActiveProfileTab("岗位模型");
+  };
+
   return (
     <div className="h-full pt-1 px-6 pb-4 space-y-2 bg-[#F3F7FA]">
       <div className="mb-1">
@@ -984,13 +1071,13 @@ export default function TalentStandardsPage() {
         <p className="text-sm text-gray-500">管理能力库、岗位模型和人才履历</p>
       </div>
 
-      <Tabs defaultValue="ability" className="w-full mt-8">
+      <Tabs value={mainTab} onValueChange={setMainTab} defaultValue="ability" className="w-full mt-8">
         <TabsList className="w-full flex justify-start space-x-6 border-b border-gray-200 bg-transparent p-0">
           <TabsTrigger
             value="ability"
             className="px-4 py-2 data-[state=active]:border-b-2 data-[state=active]:border-[#3C5E5C] data-[state=active]:font-medium data-[state=active]:text-gray-900 text-gray-500 rounded-none bg-transparent hover:text-gray-900 data-[state=active]:shadow-none"
           >
-            能力库&能力模型
+            能力库
           </TabsTrigger>
           <TabsTrigger
             value="profile"
@@ -1013,7 +1100,8 @@ export default function TalentStandardsPage() {
               <CardHeader className="flex flex-row items-center justify-between py-4 px-6 border-b border-gray-100">
                 <CardTitle style={{ color: '#3C5E5C' }} className="text-sm font-medium">能力库管理</CardTitle>
                 <div className="flex space-x-2">
-                  {/* 移除顶部的创建按钮 */}
+                  {/* 彻底删除原有的 Dialog 示例按钮，只保留其他按钮 */}
+                  {/* 其他按钮保留 */}
                 </div>
               </CardHeader>
               <CardContent className="p-6">
@@ -1022,13 +1110,20 @@ export default function TalentStandardsPage() {
                   {/* 知识技能类卡片 */}
                   {abilities.filter(ability => ability.type === "知识技能").map((ability) => (
                     <div key={ability.id} className="rounded-lg border border-gray-200 bg-white transition-shadow flex flex-col min-h-[500px]">
-                      <div className="p-4 border-b border-gray-100">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <h3 className="font-semibold text-sm text-gray-800 mb-2">{ability.name}</h3>
-                            <p className="text-sm text-gray-600">{ability.description}</p>
-                          </div>
+                      <div className="p-4 border-b border-gray-100 flex justify-between items-start">
+                        <div>
+                          <h3 className="font-semibold text-sm text-gray-800 mb-2">{ability.name}</h3>
+                          <p className="text-sm text-gray-600">{ability.description}</p>
                         </div>
+                        {/* 新增：知识技能类示例按钮 */}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-xs ml-2"
+                          onClick={() => setShowKnowledgeExampleDialog(true)}
+                        >
+                          示例
+                        </Button>
                       </div>
 
                       <div className="flex flex-1 h-[calc(100%-80px)]">
@@ -1079,7 +1174,7 @@ export default function TalentStandardsPage() {
                                     <span>添加</span>
                                   </button>
                                 </DialogTrigger>
-                                <DialogContent className="sm:max-w-[800px]">
+                                <DialogContent className="sm:max-w-[800px] max-h-[80vh] overflow-y-auto">
                                   <DialogHeader>
                                     <DialogTitle>创建{ability.type}能力项</DialogTitle>
                                   </DialogHeader>
@@ -1114,29 +1209,9 @@ export default function TalentStandardsPage() {
                                           className="bg-gray-50"
                                         />
                                       </div>
-                                      <div className="space-y-2">
-                                        <label className="text-sm font-medium">能力等级</label>
-                                        <Select
-                                          value={newAbility.level || ""}
-                                          onValueChange={(value) => setNewAbility({ ...newAbility, level: value })}
-                                        >
-                                          <SelectTrigger className="w-full">
-                                            <SelectValue placeholder="请选择等级" />
-                                          </SelectTrigger>
-                                          <SelectContent>
-                                            <SelectItem value="T1">T1</SelectItem>
-                                            <SelectItem value="T2">T2</SelectItem>
-                                            <SelectItem value="T3">T3</SelectItem>
-                                            <SelectItem value="T4">T4</SelectItem>
-                                            <SelectItem value="T5">T5</SelectItem>
-                                            <SelectItem value="T6">T6</SelectItem>
-                                            <SelectItem value="T7">T7</SelectItem>
-                                          </SelectContent>
-                                        </Select>
-                                      </div>
                                     </div>
                                     <div className="space-y-2">
-                                      <label className="text-sm font-medium">能力描述</label>
+                                      <label className="text-sm font-medium">能力定义</label>
                                       <Textarea
                                         name="description"
                                         value={newAbility.description}
@@ -1153,6 +1228,30 @@ export default function TalentStandardsPage() {
                                         onChange={(e) => setNewAbility({ ...newAbility, positions: e.target.value })}
                                         placeholder="如 财务岗（多个岗位用逗号分隔）"
                                       />
+                                    </div>
+                                    <div className="space-y-2">
+                                      {/* 能力等级描述输入 */}
+                                      <div className="space-y-2">
+                                        <label className="text-sm font-medium">能力等级描述</label>
+                                        <div className="grid grid-cols-1 gap-2">
+                                          {["1","2","3","4","5"].map((level) => (
+                                            <div key={level} className="flex items-center gap-2">
+                                              <span className="w-14 text-xs font-bold">{level}</span>
+                                              <Input
+                                                value={newAbility.levelDescriptions?.[level] || ''}
+                                                onChange={e => setNewAbility(prev => ({
+                                                  ...prev,
+                                                  levelDescriptions: {
+                                                    ...prev.levelDescriptions,
+                                                    [level]: e.target.value
+                                                  }
+                                                }))}
+                                                placeholder={`请输入等级${level}的描述`}
+                                              />
+                                            </div>
+                                          ))}
+                                        </div>
+                                      </div>
                                     </div>
                                   </div>
                                   <div className="flex justify-end space-x-2">
@@ -1198,9 +1297,6 @@ export default function TalentStandardsPage() {
                                       <span className="mx-1 text-xs text-gray-400">({item.code})</span>
                                     </div>
                                   </div>
-                                  <span className="px-1.5 py-0.5 text-xs rounded-full bg-gray-100 text-gray-700">
-                                    {item.level}
-                                  </span>
                                 </div>
                               </div>
                             ))}
@@ -1267,34 +1363,6 @@ export default function TalentStandardsPage() {
                                     className="bg-gray-50"
                                   />
                                 </div>
-                                <div className="space-y-2">
-                                  <label className="text-sm font-medium">能力等级</label>
-                                  {isEditing ? (
-                                    <Select
-                                      value={editingSkill?.level || ""}
-                                      onValueChange={(value) => setEditingSkill({ ...editingSkill!, level: value })}
-                                    >
-                                      <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="请选择等级" />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        <SelectItem value="T1">T1</SelectItem>
-                                        <SelectItem value="T2">T2</SelectItem>
-                                        <SelectItem value="T3">T3</SelectItem>
-                                        <SelectItem value="T4">T4</SelectItem>
-                                        <SelectItem value="T5">T5</SelectItem>
-                                        <SelectItem value="T6">T6</SelectItem>
-                                        <SelectItem value="T7">T7</SelectItem>
-                                      </SelectContent>
-                                    </Select>
-                                  ) : (
-                                    <Input
-                                      value={selectedKnowledgeSkill.level}
-                                      readOnly
-                                      className="bg-gray-50"
-                                    />
-                                  )}
-                                </div>
                               </div>
 
                               <div className="space-y-2">
@@ -1337,16 +1405,49 @@ export default function TalentStandardsPage() {
                                 <label className="text-sm font-medium">能力发展路径</label>
                                 <div className="relative mt-2 p-4 bg-gray-50 rounded-md">
                                   <div className="flex justify-between mb-2">
-                                    {['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'].map((level) => (
+                                    {["1", "2", "3", "4", "5"].map((level) => (
                                       <div key={level} className="text-center">
-                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center mx-auto text-xs ${(isEditing ? editingSkill?.level : selectedKnowledgeSkill.level) === level
-                                          ? 'bg-[#3C5E5C] text-white'
-                                          : 'bg-gray-200 text-gray-700'
-                                          }`}>{level}</div>
+                                        <div
+                                          className={`w-8 h-8 rounded-full flex items-center justify-center mx-auto text-xs cursor-pointer ${selectedPathLevel === level ? 'bg-[#3C5E5C] text-white' : 'bg-gray-200 text-gray-700'}`}
+                                          onClick={() => setSelectedPathLevel(level)}
+                                        >
+                                          {level}
+                                        </div>
                                       </div>
                                     ))}
                                   </div>
                                   <div className="absolute top-8 left-8 right-8 h-0.5 bg-gray-300 -z-10"></div>
+                                  {/* 编辑模式下，统一在下方显示输入框，宽度与背景一致 */}
+                                  {isEditing && (
+                                    <div className="mt-4">
+                                      <Textarea
+                                        className="w-full min-h-[120px] rounded-xl border border-gray-400 px-4 py-4 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#3C5E5C] focus:border-[#3C5E5C]"
+                                        placeholder="请输入能力等级描述"
+                                        value={editingSkill?.levelDescriptions?.[selectedPathLevel] || ''}
+                                        onChange={e => {
+                                          setEditingSkill({
+                                            ...editingSkill!,
+                                            levelDescriptions: {
+                                              ...editingSkill?.levelDescriptions,
+                                              [selectedPathLevel]: e.target.value
+                                            }
+                                          });
+                                        }}
+                                      />
+                                    </div>
+                                  )}
+                                  {/* 仅非编辑模式下展示能力等级描述 */}
+                                  {!isEditing && selectedKnowledgeSkill && selectedKnowledgeSkill.levelDescriptions && (
+                                    <div className="mt-4 space-y-2">
+                                      <label className="text-sm font-medium">能力等级描述</label>
+                                      <div className="flex items-center gap-2">
+                                        <span className="w-14 text-xs font-bold text-[#3C5E5C]">{selectedPathLevel}</span>
+                                        <span className="flex-1 text-sm text-[#3C5E5C]">
+                                          {selectedKnowledgeSkill.levelDescriptions?.[selectedPathLevel] || '（未填写）'}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  )}
                                 </div>
                               </div>
                             </div>
@@ -1404,13 +1505,20 @@ export default function TalentStandardsPage() {
                   {/* 素质类卡片 - 重构为左右布局 */}
                   {abilities.filter(ability => ability.type === "素质").map((ability) => (
                     <div key={ability.id} className="rounded-lg border border-gray-200 bg-white transition-shadow flex flex-col min-h-[500px]">
-                      <div className="p-4 border-b border-gray-100">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <h3 className="font-semibold text-sm text-gray-800 mb-2">{ability.name}</h3>
-                            <p className="text-sm text-gray-600">{ability.description}</p>
-                          </div>
+                      <div className="p-4 border-b border-gray-100 flex justify-between items-start">
+                        <div>
+                          <h3 className="font-semibold text-sm text-gray-800 mb-2">{ability.name}</h3>
+                          <p className="text-sm text-gray-600">{ability.description}</p>
                         </div>
+                        {/* 新增：示例按钮 */}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-xs ml-2"
+                          onClick={() => setShowQualityExampleDialog(true)}
+                        >
+                          示例
+                        </Button>
                       </div>
 
                       <div className="flex flex-1 h-[calc(100%-80px)]">
@@ -1520,7 +1628,6 @@ export default function TalentStandardsPage() {
                                       <span className="mx-1 text-xs text-gray-400">({item.code})</span>
                                     </div>
                                   </div>
-                                  <span className="px-1.5 py-0.5 text-xs rounded-full bg-gray-100 text-gray-700">{item.level}</span>
                                 </div>
                               </div>
                             ))}
@@ -1584,28 +1691,6 @@ export default function TalentStandardsPage() {
                                     className="bg-gray-50"
                                   />
                                 </div>
-                                <div className="space-y-2">
-                                  <label className="text-sm font-medium">能力等级</label>
-                                  {isQualityEditing ? (
-                                    <Select
-                                      value={selectedQualityItem.level}
-                                      onValueChange={value => setSelectedQualityItem({ ...selectedQualityItem, level: value })}
-                                    >
-                                      <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="请选择等级" />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        <SelectItem value="L1">L1</SelectItem>
-                                        <SelectItem value="L2">L2</SelectItem>
-                                        <SelectItem value="L3">L3</SelectItem>
-                                        <SelectItem value="L4">L4</SelectItem>
-                                        <SelectItem value="L5">L5</SelectItem>
-                                      </SelectContent>
-                                    </Select>
-                                  ) : (
-                                    <Input value={selectedQualityItem.level} readOnly className="bg-gray-50" />
-                                  )}
-                                </div>
                               </div>
                               <div className="space-y-2">
                                 <label className="text-sm font-medium">能力描述</label>
@@ -1629,6 +1714,19 @@ export default function TalentStandardsPage() {
                                 <label className="text-sm font-medium">创建时间</label>
                                 <Input value={selectedQualityItem.createdAt} readOnly className="bg-gray-50" />
                               </div>
+                              {selectedQualityItem && selectedQualityItem.levelDescriptions && (
+                                <div className="space-y-2">
+                                  <label className="text-sm font-medium">能力等级描述</label>
+                                  <div className="grid grid-cols-1 gap-2">
+                                    {Object.entries(selectedQualityItem.levelDescriptions).filter(([level]) => ["1","2","3","4","5"].includes(level)).map(([level, desc]) => (
+                                      <div key={level} className="flex items-center gap-2">
+                                        <span className={`w-14 text-xs font-bold ${selectedQualityItem.level === level ? 'text-[#3C5E5C]' : 'text-gray-500'}`}>{level}</span>
+                                        <span className={`flex-1 text-sm ${selectedQualityItem.level === level ? 'text-[#3C5E5C]' : 'text-gray-700'}`}>{desc || '（未填写）'}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           ) : (
                             <div className="h-full flex items-center justify-center">
@@ -1679,116 +1777,6 @@ export default function TalentStandardsPage() {
                       </div>
                     </div>
                   ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* 岗位模型管理模块 */}
-          <div className="space-y-4">
-            <Card className="shadow-sm border-none bg-white rounded-lg overflow-hidden">
-              <CardHeader className="flex flex-row items-center justify-between py-4 px-6 border-b border-gray-100">
-                <CardTitle style={{ color: '#3C5E5C' }} className="text-sm font-medium">岗位模型管理</CardTitle>
-                <div className="flex space-x-2">
-                  <Dialog open={showCreatePositionDialog} onOpenChange={setShowCreatePositionDialog}>
-                    <DialogTrigger asChild>
-                      <Button className="bg-[#426966] hover:bg-[#2A4A48] text-white text-xs px-3 py-1 h-8 rounded-md">
-                        <PlusIcon size={14} className="mr-1" />
-                        创建
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>创建岗位模型</DialogTitle>
-                      </DialogHeader>
-                      <div className="space-y-4 py-4">
-                        <div className="space-y-2">
-                          <label className="text-sm font-medium">岗位模型名称</label>
-                          <Input
-                            name="name"
-                            value={newPosition.name}
-                            onChange={handlePositionChange}
-                            placeholder="请输入岗位模型名称"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-sm font-medium">岗位模型描述</label>
-                          <Textarea
-                            name="description"
-                            value={newPosition.description}
-                            onChange={handlePositionChange}
-                            placeholder="请输入岗位模型描述"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-sm font-medium">岗位类型</label>
-                          <select
-                            name="type"
-                            value={newPosition.type}
-                            onChange={handlePositionChange}
-                            className="w-full border rounded-md px-3 py-2 text-sm"
-                          >
-                            <option value="技术">技术</option>
-                            <option value="管理">管理</option>
-                            <option value="业务">业务</option>
-                          </select>
-                        </div>
-                      </div>
-                      <div className="flex justify-end space-x-2">
-                        <Button variant="outline" onClick={() => setShowCreatePositionDialog(false)}>取消</Button>
-                        <Button onClick={handleCreatePosition}>创建</Button>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                </div>
-              </CardHeader>
-              <CardContent className="p-6">
-                <div className="grid grid-cols-3 gap-4">
-                  {positions.map((position) => (
-                    <div key={position.id} className="rounded-lg border border-gray-200 p-4 bg-white hover:shadow-md transition-shadow">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h3 className="font-semibold text-sm text-gray-800 mb-2">{position.name}</h3>
-                          <p className="text-sm text-gray-600 mb-3">{position.description}</p>
-                        </div>
-                        <div className="flex space-x-2">
-                          <button className="text-gray-400 hover:text-gray-600">
-                            <EditIcon size={14} />
-                          </button>
-                          <button
-                            className="text-gray-400 hover:text-red-600"
-                            onClick={() => handleDeletePosition(position.id)}
-                          >
-                            <XIcon size={14} />
-                          </button>
-                        </div>
-                      </div>
-                      <div className="flex justify-between mt-3 text-xs text-gray-500">
-                        <span>共{position.count}个岗位</span>
-                        <span>{position.date}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* 岗位图谱模块 */}
-          <div className="space-y-4">
-            <Card className="shadow-sm border-none bg-white rounded-lg overflow-hidden">
-              <CardHeader className="flex flex-row items-center justify-between py-4 px-6 border-b border-gray-100">
-                <CardTitle style={{ color: '#3C5E5C' }} className="text-sm font-medium">岗位图谱</CardTitle>
-                <div className="flex space-x-2">
-                  <Button className="bg-[#426966] hover:bg-[#2A4A48] text-white text-xs px-3 py-1 h-8 rounded-md">
-                    <PlusIcon size={14} className="mr-1" />
-                    创建
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="p-6">
-                <div className="h-[300px] bg-gray-50 rounded-lg flex items-center justify-start p-4 border border-gray-200">
-                  <p className="text-gray-400">岗位图谱展示区域</p>
                 </div>
               </CardContent>
             </Card>
@@ -1922,7 +1910,7 @@ export default function TalentStandardsPage() {
 
         {/* 人岗匹配模块 */}
         <TabsContent value="matching" className="mt-6">
-          <MatchingPage />
+          <MatchingPage onJumpToProfileJobModel={jumpToProfileJobModel} />
         </TabsContent>
       </Tabs>
 
@@ -2022,14 +2010,6 @@ export default function TalentStandardsPage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">能力等级</label>
-                  <Input
-                    value={selectedItem.level}
-                    disabled
-                    className="bg-gray-50"
-                  />
-                </div>
-                <div className="space-y-2">
                   <label className="text-sm font-medium">上传时间</label>
                   <Input
                     value={formatDate(selectedItem.createdAt)}
@@ -2103,55 +2083,8 @@ export default function TalentStandardsPage() {
                 placeholder="如 财务经理岗"
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">素质类型</label>
-                <Input
-                  name="type"
-                  value="专业素质"
-                  disabled
-                  className="bg-gray-50"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">等级划分</label>
-                <Select
-                  value={newProfessionalAbility.level || ""}
-                  onValueChange={(value) => setNewProfessionalAbility({ ...newProfessionalAbility, level: value })}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="请选择等级" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="L1">1级 (L1)</SelectItem>
-                    <SelectItem value="L2">2级 (L2)</SelectItem>
-                    <SelectItem value="L3">3级 (L3)</SelectItem>
-                    <SelectItem value="L4">4级 (L4)</SelectItem>
-                    <SelectItem value="L5">5级 (L5)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">分级行为标准</label>
-              <div className="flex items-center space-x-2 mb-2">
-                <Select
-                  value={newProfessionalAbility.level || ""}
-                  onValueChange={(value) => setNewProfessionalAbility({ ...newProfessionalAbility, level: value })}
-                >
-                  <SelectTrigger className="w-32">
-                    <SelectValue placeholder="选择等级" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="L1">1级 (L1)</SelectItem>
-                    <SelectItem value="L2">2级 (L2)</SelectItem>
-                    <SelectItem value="L3">3级 (L3)</SelectItem>
-                    <SelectItem value="L4">4级 (L4)</SelectItem>
-                    <SelectItem value="L5">5级 (L5)</SelectItem>
-                  </SelectContent>
-                </Select>
-                <span className="text-xs text-gray-500">选择要添加行为标准的等级</span>
-              </div>
               <Textarea
                 name="level_description"
                 value={newProfessionalAbility.level_description || ""}
@@ -2247,6 +2180,28 @@ export default function TalentStandardsPage() {
                 ))}
               </div>
             </div>
+            {/* 能力等级描述输入 */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">能力等级描述</label>
+              <div className="grid grid-cols-1 gap-2">
+                {["1","2","3","4","5"].map((level) => (
+                  <div key={level} className="flex items-center gap-2">
+                    <span className="w-14 text-xs font-bold">{level}</span>
+                    <Input
+                      value={newProfessionalAbility.levelDescriptions?.[level] || ''}
+                      onChange={e => setNewProfessionalAbility(prev => ({
+                        ...prev,
+                        levelDescriptions: {
+                          ...prev.levelDescriptions,
+                          [level]: e.target.value
+                        }
+                      }))}
+                      placeholder={`请输入等级${level}的描述`}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
           <div className="flex justify-end space-x-2 pt-2 border-t border-gray-100">
             <Button variant="outline" onClick={() => setShowCreateProfessionalDialog(false)}>取消</Button>
@@ -2335,30 +2290,14 @@ export default function TalentStandardsPage() {
                     <SelectItem value="L3">3级 (L3)</SelectItem>
                     <SelectItem value="L4">4级 (L4)</SelectItem>
                     <SelectItem value="L5">5级 (L5)</SelectItem>
+                    <SelectItem value="L6">6级 (L6)</SelectItem>
+                    <SelectItem value="L7">7级 (L7)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">分级行为标准</label>
-              <div className="flex items-center space-x-2 mb-2">
-                <Select
-                  value={newLeadershipAbility.level || ""}
-                  onValueChange={(value) => setNewLeadershipAbility({ ...newLeadershipAbility, level: value })}
-                >
-                  <SelectTrigger className="w-32">
-                    <SelectValue placeholder="选择等级" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="L1">1级 (L1)</SelectItem>
-                    <SelectItem value="L2">2级 (L2)</SelectItem>
-                    <SelectItem value="L3">3级 (L3)</SelectItem>
-                    <SelectItem value="L4">4级 (L4)</SelectItem>
-                    <SelectItem value="L5">5级 (L5)</SelectItem>
-                  </SelectContent>
-                </Select>
-                <span className="text-xs text-gray-500">选择要添加行为标准的等级</span>
-              </div>
               <Textarea
                 name="level_description"
                 value={newLeadershipAbility.level_description || ""}
@@ -2537,6 +2476,8 @@ export default function TalentStandardsPage() {
                     <SelectItem value="L3">3级 (L3)</SelectItem>
                     <SelectItem value="L4">4级 (L4)</SelectItem>
                     <SelectItem value="L5">5级 (L5)</SelectItem>
+                    <SelectItem value="L6">6级 (L6)</SelectItem>
+                    <SelectItem value="L7">7级 (L7)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -2640,6 +2581,8 @@ export default function TalentStandardsPage() {
                     <SelectItem value="T3">T3 - 中级</SelectItem>
                     <SelectItem value="T4">T4 - 高级</SelectItem>
                     <SelectItem value="T5">T5 - 专家级</SelectItem>
+                    <SelectItem value="T6">T6 - 高级专家级</SelectItem>
+                    <SelectItem value="T7">T7 - 资深专家级</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -2671,6 +2614,115 @@ export default function TalentStandardsPage() {
             >
               创建
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* 在页面底部添加素质类示例弹窗 */}
+      <Dialog open={showQualityExampleDialog} onOpenChange={setShowQualityExampleDialog}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>素质类能力项填写示例</DialogTitle>
+          </DialogHeader>
+          {/* Tab切换 */}
+          <div className="flex space-x-2 mb-4">
+            <Button
+              variant={qualityExampleTab === 'professional' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setQualityExampleTab('professional')}
+            >专业素质</Button>
+            <Button
+              variant={qualityExampleTab === 'leadership' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setQualityExampleTab('leadership')}
+            >领导力素质</Button>
+            <Button
+              variant={qualityExampleTab === 'general' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setQualityExampleTab('general')}
+            >通用素质</Button>
+          </div>
+          {/* 示例内容渲染 */}
+          {qualityExampleTab === 'professional' && (
+            <div className="space-y-2 text-sm text-gray-700">
+              <div><b>素质编码：</b> F-PRO-001</div>
+              <div><b>素质名称：</b> 沟通协作</div>
+              <div><b>素质类型：</b> 专业素质</div>
+              <div><b>素质定义：</b> 能够有效协调团队成员达成目标</div>
+              <div><b>适用岗位：</b> 所有岗位</div>
+              <div><b>能力等级描述：</b></div>
+              <ul className="pl-5 list-disc text-xs text-gray-600">
+                <li><b>1：</b> 能够理解团队目标，参与团队讨论</li>
+                <li><b>2：</b> 能主动表达观点，配合他人完成任务</li>
+                <li><b>3：</b> 能协调团队成员解决分歧</li>
+                <li><b>4：</b> 能带领小组高效协作</li>
+                <li><b>5：</b> 能推动跨部门团队达成复杂目标</li>
+              </ul>
+            </div>
+          )}
+          {qualityExampleTab === 'leadership' && (
+            <div className="space-y-2 text-sm text-gray-700">
+              <div><b>素质编码：</b> L-LEAD-102</div>
+              <div><b>素质名称：</b> 战略决策能力</div>
+              <div><b>素质类型：</b> 领导力素质</div>
+              <div><b>核心定义：</b> 能在不确定性中做出推动业务突破的决策</div>
+              <div><b>适用层级：</b> M4（副总裁及以上）</div>
+              <div><b>能力等级描述：</b></div>
+              <ul className="pl-5 list-disc text-xs text-gray-600">
+                <li><b>1：</b> 能理解公司战略方向</li>
+                <li><b>2：</b> 能参与部门战略讨论</li>
+                <li><b>3：</b> 能独立制定本部门发展规划</li>
+                <li><b>4：</b> 能主导制定3-5年战略规划并推动落地</li>
+                <li><b>5：</b> 能引领公司实现战略性突破</li>
+              </ul>
+            </div>
+          )}
+          {qualityExampleTab === 'general' && (
+            <div className="space-y-2 text-sm text-gray-700">
+              <div><b>素质编码：</b> G-COM-001</div>
+              <div><b>素质名称：</b> 沟通能力</div>
+              <div><b>素质类型：</b> 通用素质</div>
+              <div><b>核心定义：</b> 能有效传递信息并协调多方达成共识</div>
+              <div><b>适用岗位：</b> 所有岗位</div>
+              <div><b>能力等级描述：</b></div>
+              <ul className="pl-5 list-disc text-xs text-gray-600">
+                <li><b>1：</b> 能清楚表达基本信息</li>
+                <li><b>2：</b> 能主动倾听他人意见</li>
+                <li><b>3：</b> 能协调多方意见达成共识</li>
+                <li><b>4：</b> 能在复杂场景下高效沟通</li>
+                <li><b>5：</b> 能影响和引导他人观点</li>
+              </ul>
+            </div>
+          )}
+          <div className="flex justify-end mt-4">
+            <Button onClick={() => setShowQualityExampleDialog(false)}>关闭</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* 在页面底部添加知识技能类示例弹窗 */}
+      <Dialog open={showKnowledgeExampleDialog} onOpenChange={setShowKnowledgeExampleDialog}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>知识技能类能力项填写示例</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-2 text-sm text-gray-700">
+            <div><b>能力编码：</b> K001</div>
+            <div><b>能力名称：</b> 财务报表分析</div>
+            <div><b>能力类型：</b> 知识技能类</div>
+            <div><b>能力定义：</b> 能运用Python完成数据清洗和可视化分析</div>
+            <div><b>适用岗位：</b> 财务岗, 数据分析岗</div>
+            <div><b>能力等级描述：</b></div>
+            <ul className="pl-5 list-disc text-xs text-gray-600">
+              <li><b>1：</b> 能够识别基本财务报表结构</li>
+              <li><b>2：</b> 能够独立完成常规财务数据录入</li>
+              <li><b>3：</b> 能够分析财务报表并发现异常</li>
+              <li><b>4：</b> 能够结合业务场景进行多维度分析</li>
+              <li><b>5：</b> 能够设计自动化分析流程并指导他人</li>
+            </ul>
+          </div>
+          <div className="flex justify-end mt-4">
+            <Button onClick={() => setShowKnowledgeExampleDialog(false)}>关闭</Button>
           </div>
         </DialogContent>
       </Dialog>
