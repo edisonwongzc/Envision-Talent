@@ -616,6 +616,72 @@ export default function QualificationManagementPage() {
       }
     }
   });
+  // 组件顶部添加切换显示类型状态
+  /**
+   * 能力分数人数占比显示类型
+   * @type {"count"|"percent"}
+   */
+  const [abilityBarType, setAbilityBarType] = useState<'count'|'percent'>('count');
+
+  // 能力分数段渲染内容提前声明，避免JSX中IIFE导致类型错误
+  const abilityRanges = [
+    { label: '90及以上', min: 90, max: 100 },
+    { label: '80-89', min: 80, max: 89 },
+    { label: '70-79', min: 70, max: 79 },
+    { label: '60-69', min: 60, max: 69 },
+    { label: '60以下', min: 0, max: 59 }
+  ];
+
+  // 1. 新增能力和体系筛选状态
+  const [selectedAbility, setSelectedAbility] = useState<string>("all");
+  const [selectedSystem, setSelectedSystem] = useState<string>("all");
+
+  // 2. 提取能力和体系选项
+  const abilityOptions = Object.keys(keyAbilityTags); // 如"商业敏锐" "技术前瞻"等
+  const systemOptions = Array.from(new Set(employeeData.map(emp => emp.system)));
+
+  // 3. 根据筛选项过滤员工数据
+  const filteredEmployeeData = employeeData.filter(emp => {
+    // 体系筛选
+    const systemMatch = selectedSystem === 'all' ? true : emp.system === selectedSystem;
+    // 能力筛选，仅用 role 字段演示
+    let abilityMatch = true;
+    if (selectedAbility !== 'all') {
+      abilityMatch = emp.role === selectedAbility;
+    }
+    return systemMatch && abilityMatch;
+  });
+
+  // 4. 能力分数段统计也用筛选后的数据
+  const totalEmployee = filteredEmployeeData.length;
+  const abilityBarList = abilityRanges.map(range => {
+    const count = filteredEmployeeData.filter(emp => emp.keyAbilityScore >= range.min && emp.keyAbilityScore <= range.max).length;
+    const percent = totalEmployee > 0 ? (count / totalEmployee) : 0;
+    return (
+      <div key={range.label} className="mb-7">
+        <div className="flex items-center justify-between mb-1">
+          <span className="text-sm text-gray-700 font-medium w-20 flex-shrink-0">{range.label}</span>
+          <div className="flex-1 mx-3">
+            <div className="w-full h-5 bg-gray-200 rounded overflow-hidden flex items-center">
+              <div
+                className="h-5 bg-gray-800 rounded"
+                style={{ width: `${Math.round(percent * 100)}%`, minWidth: count > 0 ? 24 : 0 }}
+              />
+            </div>
+          </div>
+          <span className="text-xs text-gray-500 w-12 text-right flex-shrink-0">
+            {abilityBarType === 'count'
+              ? `${count}人`
+              : `${(percent * 100).toFixed(1)}%`}
+          </span>
+        </div>
+      </div>
+    );
+  });
+
+  // 5. 右侧列表也用筛选后的数据
+  // 排序后的结果数据
+  const sortedResultEmployeeData = [...filteredEmployeeData];
 
   return (
     <div className="h-full pt-1 px-6 pb-4 space-y-2 bg-[#f4f7fa]">
@@ -787,7 +853,7 @@ export default function QualificationManagementPage() {
                               { name: "系统监控", description: "能够设计与实施系统监控与告警机制", category: "运维/运营" }
                             ],
                             feedback: [
-                              { name: "技术评审委员会", date: "2023-05-15", content: "技术能力突出，在系统架构和性能优化方面表现尤为突出", category: "知识传承" },
+                              { name: "技术评审委员会", date: "2023-05-15", content: "技术能力突出，在系统架构和性能优化方面表现尤为突出。后续建议加强团队协作与项目管理能力的培养。", category: "知识传承" },
                               { name: "研发部门主管", date: "2023-05-10", content: "具备良好的团队协作和问题解决能力，能够带领团队完成复杂项目", category: "团队建设" },
                               { name: "人力资源部", date: "2023-05-05", content: "积极参与新员工培训与指导，得到团队成员一致好评", category: "人才培养" },
                               { name: "产品部门", date: "2023-04-28", content: "展现了远景公司的创新精神与客户导向价值观", category: "远景精神" }
@@ -1262,96 +1328,113 @@ export default function QualificationManagementPage() {
         </TabsContent>
         
         <TabsContent value="result" className="space-y-4 mt-6">
-          <Card className="shadow-sm border-none bg-white rounded-lg overflow-hidden">
+          <Card className="shadow-sm border-none bg-white rounded-lg overflow-hidden w-full">
             <CardHeader className="flex flex-row items-center justify-between py-4 px-6 border-b border-gray-100">
-              <CardTitle style={{color: '#3C5E5C'}} className="text-sm font-medium">任职资格结果应用</CardTitle>
-              <Button className="bg-[#3C5E5C] hover:bg-[#2A4A48] text-white text-xs px-3 py-1 h-8 rounded-md">
-                导出报告
-              </Button>
+              <div className="flex items-center gap-4 w-full justify-between">
+                <CardTitle style={{color: '#3C5E5C'}} className="text-sm font-medium">任职资格结果应用</CardTitle>
+                <div className="flex items-center gap-3">
+                  {/* 能力下拉框 */}
+                  <Select value={selectedAbility} onValueChange={setSelectedAbility}>
+                    <SelectTrigger className="w-32 h-8 text-sm border-gray-200 px-3 py-1">
+                      <SelectValue placeholder="选择能力" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">全部</SelectItem>
+                      {abilityOptions.map(opt => (
+                        <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {/* 体系下拉框 */}
+                  <Select value={selectedSystem} onValueChange={setSelectedSystem}>
+                    <SelectTrigger className="w-32 h-8 text-sm border-gray-200 px-3 py-1">
+                      <SelectValue placeholder="选择体系" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">全部</SelectItem>
+                      {systemOptions.map(opt => (
+                        <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button className="bg-[#3C5E5C] hover:bg-[#2A4A48] text-white text-xs px-3 py-1 h-8 rounded-md">
+                    导出报告
+                  </Button>
+                </div>
+              </div>
             </CardHeader>
             <CardContent className="p-6">
-              <div className="overflow-x-auto border border-gray-200 rounded-lg">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-4 py-3 text-center text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-20">头像</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-24">申请人工号</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-24">申请人姓名</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-24">部门</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-24">岗位</th>
-                      {/* 新增：知识技能列 */}
-                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-                        <button type="button" className="flex items-center cursor-pointer select-none" onClick={() => setKnowledgeSkillSort(knowledgeSkillSort === 'desc' ? 'asc' : 'desc')}>
-                          知识技能
-                          <span className="ml-1 inline-block align-middle">
-                            {knowledgeSkillSort === 'desc' ? '↓' : '↑'}
-                          </span>
-                        </button>
-                      </th>
-                      {/* 新增：关键能力列 */}
-                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-                        <button type="button" className="flex items-center cursor-pointer select-none" onClick={() => setKeyAbilitySort(keyAbilitySort === 'desc' ? 'asc' : 'desc')}>
-                          关键能力
-                          <span className="ml-1 inline-block align-middle">
-                            {keyAbilitySort === 'desc' ? '↓' : '↑'}
-                          </span>
-                        </button>
-                      </th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-36">当前职级认证时间</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-24">当前技术职级</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-24">流程状态</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-24">操作</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {sortedEmployeeData.map(emp => (
-                      <tr key={emp.id}>
-                        <td className="px-4 py-3 whitespace-nowrap text-center">
-                          <div className="flex-shrink-0 h-10 w-10 rounded-full overflow-hidden shadow-md mx-auto">
-                            <img src={emp.avatar} alt="员工头像" className="h-10 w-10 object-cover" />
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">{emp.id}</div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">{emp.name}</div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">{emp.department}</div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">{emp.position}</div>
-                        </td>
-                        {/* 新增：知识技能分数 */}
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm font-medium text-blue-700">{emp.knowledgeSkillScore}</div>
-                        </td>
-                        {/* 新增：关键能力分数 */}
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm font-medium text-green-700">{emp.keyAbilityScore}</div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">{emp.certificationDate}</div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">{emp.currentLevel}</div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">{emp.processStatus || '-'}</div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-left">
-                          <span 
-                            className="text-sm text-[#3C5E5C] cursor-pointer hover:underline"
-                            onClick={() => viewEmployeeDetail(emp.id)}
-                          >
-                            查看个人详情
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div className="flex gap-3 w-full items-start">
+                {/* 左侧 能力分数人数占比 38% */}
+                <div className="w-[38%] min-w-[260px] flex flex-col justify-between h-full">
+                  <div>
+                    {/* 统计每个关键能力分数段人数 */}
+                    {abilityBarList}
+                  </div>
+                  <div className="flex flex-row items-center justify-start mt-6">
+                    <Select
+                      value={abilityBarType}
+                      onValueChange={value => setAbilityBarType(value as 'count' | 'percent')}
+                    >
+                      <SelectTrigger className="w-24 h-8 text-sm border-gray-200 px-3 py-1">
+                        <SelectValue placeholder="显示类型" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="count">人数</SelectItem>
+                        <SelectItem value="percent">百分比</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                {/* 右侧 任职资格结果应用 62% */}
+                <div className="w-[62%] flex flex-col h-full">
+                  <div className="overflow-x-auto border border-gray-200 rounded-lg">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-4 py-3 text-center text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-16">排名</th>
+                          <th className="px-4 py-3 text-center text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-20">头像</th>
+                          <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-24">申请人工号</th>
+                          <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-24">申请人姓名</th>
+                          <th className="px-4 py-3 text-center text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-20">分数</th>
+                          <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-24">操作</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {sortedResultEmployeeData.map((emp, idx) => (
+                          <tr key={emp.id}>
+                            <td className="px-4 py-3 whitespace-nowrap text-center font-bold">{idx + 1}</td>
+                            <td className="px-4 py-3 whitespace-nowrap text-center">
+                              <div className="flex-shrink-0 h-10 w-10 rounded-full overflow-hidden shadow-md mx-auto">
+                                <img src={emp.avatar} alt="员工头像" className="h-10 w-10 object-cover" />
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 whitespace-nowrap">
+                              <div className="text-sm font-medium text-gray-900">{emp.id}</div>
+                            </td>
+                            <td className="px-4 py-3 whitespace-nowrap">
+                              <div className="text-sm font-medium text-gray-900">{emp.name}</div>
+                            </td>
+                            <td className="px-4 py-3 whitespace-nowrap text-center font-bold">
+                              {emp.knowledgeSkillScore + emp.keyAbilityScore}
+                            </td>
+                            <td className="px-4 py-3 whitespace-nowrap text-left">
+                              <span 
+                                className="text-sm text-[#3C5E5C] cursor-pointer hover:underline"
+                                onClick={() => viewEmployeeDetail(emp.id)}
+                              >
+                                查看个人详情
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="flex justify-end mt-2">
+                    <div className="text-xs text-gray-500">总人数：{employeeData.length}人</div>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>

@@ -8,6 +8,14 @@ import { useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 /**
+ * 单维度柱状图颜色定义（黑白灰）
+ * 潜力者：浅灰（#ccc）
+ * 工蜂：灰色（#888）
+ * 过渡者：深灰（#444）
+ * 明星：黑色（#222）
+ */
+
+/**
  * 人才盘点页面组件
  * @return {React.ReactElement} 人才盘点页面
  */
@@ -63,19 +71,19 @@ export default function TalentAssessmentPage() {
             
             {/* 柱状图数据 - 从左往右排序 */}
             <g>
-              <rect x="50" y="220" width="60" height="120" fill="#5ab049" />
+              <rect x="50" y="220" width="60" height="120" fill="#ccc" />
               <text x="80" y="90" textAnchor="middle" fill="#64748B" fontSize="12">潜力者</text>
               <text x="80" y="370" textAnchor="middle" fill="#64748B" fontSize="12">8人</text>
               
-              <rect x="200" y="180" width="60" height="160" fill="#dcd152" />
+              <rect x="200" y="180" width="60" height="160" fill="#888" />
               <text x="230" y="90" textAnchor="middle" fill="#64748B" fontSize="12">工蜂</text>
               <text x="230" y="370" textAnchor="middle" fill="#64748B" fontSize="12">10人</text>
               
-              <rect x="350" y="140" width="60" height="200" fill="#6930ee" />
+              <rect x="350" y="140" width="60" height="200" fill="#444" />
               <text x="380" y="90" textAnchor="middle" fill="#64748B" fontSize="12">过渡者</text>
               <text x="380" y="370" textAnchor="middle" fill="#64748B" fontSize="12">12人</text>
               
-              <rect x="500" y="100" width="60" height="240" fill="#ec693d" />
+              <rect x="500" y="100" width="60" height="240" fill="#222" />
               <text x="530" y="90" textAnchor="middle" fill="#64748B" fontSize="12">明星</text>
               <text x="530" y="370" textAnchor="middle" fill="#64748B" fontSize="12">15人</text>
             </g>
