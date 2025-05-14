@@ -11,7 +11,7 @@ export default function Home() {
   return (
     <div className="h-screen flex flex-col items-center justify-center bg-gray-100">
       <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold text-gray-900 mb-2">HR SaaS 系统</h1>
+        <h1 className="text-4xl font-bold text-gray-900 mb-2">Envision Talent System</h1>
         <p className="text-gray-600">专业的人力资源管理解决方案</p>
       </div>
       
