@@ -73,6 +73,7 @@ interface StandardDetail {
   updateDate: string;
   description: string;
   category?: string;
+  subClass?: string; // 新增：子类
   position?: string;
   role?: string;
   level?: string;
@@ -83,13 +84,95 @@ interface StandardDetail {
   feedback: FeedbackItem[];
 }
 
+// 新增：雷达图员工数据接口
+interface RadarEmployee {
+  id: string;
+  name: string;
+  position: string;
+  system: string;
+  department: string;
+  score: number; // 员工当前总分
+  class?: string;
+  subClass?: string;
+  // API接口字段：用于对接后台数据
+  // abilityScores?: {
+  //   strategicPlanning: number;        // 战略规划
+  //   architectureDesign: number;       // 架构/方案设计
+  //   implementationExecution: number;  // 方案实施/落地
+  //   operationMaintenance: number;     // 运维/运营
+  //   problemSolvingOptimization: number; // 问题解决与优化
+  // };
+}
+
+// 新增：雷达图目标数据接口
+interface RadarTarget {
+  id: string;
+  name: string;
+  level: string;
+  system: string;
+  department: string;
+  targetScore: number; // 目标总分
+  class?: string;
+  subClass?: string;
+  // API接口字段：用于对接后台数据
+  // standardScores?: {
+  //   strategicPlanning: number;        // 战略规划标准分
+  //   architectureDesign: number;       // 架构/方案设计标准分
+  //   implementationExecution: number;  // 方案实施/落地标准分
+  //   operationMaintenance: number;     // 运维/运营标准分
+  //   problemSolvingOptimization: number; // 问题解决与优化标准分
+  // };
+}
+
 /**
  * 任职资格管理页面组件
  * @return {React.ReactElement} 任职资格管理页面
+ * 
+ * API接口说明：
+ * - GET /api/radar/employees - 获取雷达图员工列表（含分数数据）
+ * - GET /api/radar/targets - 获取雷达图目标标准列表（含分数数据）
+ * - GET /api/radar/comparison/{employeeId}/{targetId} - 获取员工与目标的对比数据
+ * 
+ * 雷达图维度（满分20分）：
+ * - strategicPlanning: 战略规划
+ * - architectureDesign: 架构/方案设计
+ * - implementationExecution: 方案实施/落地
+ * - operationMaintenance: 运维/运营
+ * - problemSolvingOptimization: 问题解决与优化
  */
+
+// TODO: API接口函数模板 - 用于后台数据对接
+// 获取雷达图员工列表
+// const fetchRadarEmployees = async (filters?: Partial<RadarEmployee>): Promise<RadarEmployee[]> => {
+//   const response = await fetch('/api/radar/employees', {
+//     method: 'POST',
+//     headers: { 'Content-Type': 'application/json' },
+//     body: JSON.stringify(filters)
+//   });
+//   return response.json();
+// };
+
+// 获取雷达图目标列表
+// const fetchRadarTargets = async (filters?: Partial<RadarTarget>): Promise<RadarTarget[]> => {
+//   const response = await fetch('/api/radar/targets', {
+//     method: 'POST',
+//     headers: { 'Content-Type': 'application/json' },
+//     body: JSON.stringify(filters)
+//   });
+//   return response.json();
+// };
+
+// 获取员工与目标的详细对比数据
+// const fetchRadarComparison = async (employeeId: string, targetId: string) => {
+//   const response = await fetch(`/api/radar/comparison/${employeeId}/${targetId}`);
+//   return response.json();
+// };
+
 export default function QualificationManagementPage() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedSequence, setSelectedSequence] = useState("");
+  const [selectedClass, setSelectedClass] = useState("all");
+  const [selectedSubClass, setSelectedSubClass] = useState("all");
+  const [selectedDirection, setSelectedDirection] = useState("all");
   const [selectedPosition, setSelectedPosition] = useState("");
   const [selectedRole, setSelectedRole] = useState("");
   const [selectedLevel, setSelectedLevel] = useState("");
@@ -110,6 +193,8 @@ export default function QualificationManagementPage() {
   const [processFilters, setProcessFilters] = useState({
     name: "",
     status: "",
+    class: "all", // 新增：类筛选
+    subClass: "all", // 新增：子类筛选
     sequence: "",
     department: "",
     system: "",
@@ -146,12 +231,23 @@ export default function QualificationManagementPage() {
   const [showProcessSelectionMode, setShowProcessSelectionMode] = useState(false);
   const [showProcessBatchConfirm, setShowProcessBatchConfirm] = useState(false);
   const [processBatchSuccess, setProcessBatchSuccess] = useState(false);
+  
+  // 新增：更多筛选展开状态
+  const [showMoreProcessFilters, setShowMoreProcessFilters] = useState(false);
 
   // 模拟数据
   const sequences = ["技术类", "产品类", "管理类"];
   const positions = ["工程师", "产品经理", "项目经理", "架构师"];
   const roles = ["开发", "测试", "运维", "产品", "项目管理"];
   const levels = ["P3", "P4", "P5", "P6", "P7"];
+  
+  // 认证类型映射
+  const certificationTypeMap = {
+    "产品类": "P",
+    "技术类": "T", 
+    "管理类": "M",
+    "设计类": "D"
+  };
   
   // 模拟员工详情数据
   const employeeData = [
@@ -160,6 +256,8 @@ export default function QualificationManagementPage() {
       name: "李十三",
       avatar: "https://images.unsplash.com/photo-1564564321837-a57b7070ac4f?w=300&auto=format&fit=crop&q=60",
       sequence: "技术序列",
+      category: "技术类",
+      subClass: "后端技术",
       position: "高级工程师",
       role: "后端开发",
       system: "研发体系",
@@ -187,6 +285,8 @@ export default function QualificationManagementPage() {
       name: "赵六",
       avatar: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=60",
       sequence: "产品序列",
+      category: "产品类",
+      subClass: "用户产品",
       position: "产品经理",
       role: "产品管理",
       system: "产品体系",
@@ -213,6 +313,8 @@ export default function QualificationManagementPage() {
       name: "吴十",
       avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&auto=format&fit=crop&q=60",
       sequence: "技术序列",
+      category: "技术类",
+      subClass: "前端技术",
       position: "工程师",
       role: "前端开发",
       system: "研发体系",
@@ -246,78 +348,93 @@ export default function QualificationManagementPage() {
   const processList = [
     {
       id: "PROC001",
-      name: "2023年Q2+李十三+P6技术认证", // 认证周期+员工姓名+认证技术职级
+      name: "李十三、2023-05-01、P6、T", // 姓名、年月日、职级、认证类型
       status: "进行中",
       applicantName: "李十三",
       applicantId: "EMP001",
       createDate: "2023-05-01",
+      class: "技术类",
+      subClass: "后端技术",
       sequence: "技术序列",
       direction: "后端开发",
       position: "高级工程师",
       role: "开发",
       system: "研发体系",
       department: "研发部",
-      team: "核心后端团队"
+      team: "核心后端团队",
+      level: "P6"
     },
     {
       id: "PROC002",
-      name: "2023年Q2+赵六+P5产品认证",
+      name: "赵六、2023-04-10、P5、P",
       status: "已完成",
       applicantName: "赵六",
       applicantId: "EMP031",
       createDate: "2023-04-10",
+      class: "产品类",
+      subClass: "用户产品",
       sequence: "产品序列",
       direction: "产品管理",
       position: "产品经理",
       role: "产品",
       system: "产品体系",
       department: "产品部",
-      team: "用户产品团队"
+      team: "用户产品团队",
+      level: "P5"
     },
     {
       id: "PROC003",
-      name: "2023年Q3+吴十+P4技术认证",
+      name: "吴十、2023-06-15、P4、T",
       status: "进行中",
       applicantName: "吴十",
       applicantId: "EMP015",
       createDate: "2023-06-15",
+      class: "技术类",
+      subClass: "前端技术",
       sequence: "技术序列",
       direction: "前端开发",
       position: "工程师",
       role: "开发",
       system: "研发体系",
       department: "研发部",
-      team: "用户界面团队"
+      team: "用户界面团队",
+      level: "P4"
     },
     {
       id: "PROC004",
-      name: "2023年Q2+张四+P5管理认证",
+      name: "张四、2023-06-20、P5、M",
       status: "计划中",
       applicantName: "张四",
       applicantId: "EMP021",
       createDate: "2023-06-20",
+      class: "管理类",
+      subClass: "项目管理",
       sequence: "管理序列",
       direction: "项目管理",
       position: "项目经理",
       role: "项目管理",
       system: "管理体系",
       department: "项目管理部",
-      team: "项目管理团队"
+      team: "项目管理团队",
+      level: "P5"
     },
     {
       id: "PROC005",
-      name: "2023年Q2+王五+P6设计认证",
+      name: "王五、2023-05-15、P6、D",
       status: "进行中",
       applicantName: "王五",
       applicantId: "EMP025",
       createDate: "2023-05-15",
+      class: "设计类",
+      subClass: "视觉设计",
       sequence: "设计序列",
       direction: "UI设计",
       position: "高级设计师",
       role: "设计",
       system: "设计体系",
       department: "设计部",
-      team: "用户体验团队"
+      team: "用户体验团队",
+      level: "P6"
     }
   ];
 
@@ -335,7 +452,9 @@ export default function QualificationManagementPage() {
   // 添加重置筛选函数
   const resetFilters = () => {
     setSearchTerm("");
-    setSelectedSequence("");
+    setSelectedClass("all");
+    setSelectedSubClass("all");
+    setSelectedDirection("all");
     setSelectedPosition("");
     setSelectedRole("");
     setSelectedLevel("");
@@ -478,6 +597,24 @@ export default function QualificationManagementPage() {
     });
   };
   
+  // 添加筛选选项
+  const classOptions = ["技术类", "产品类", "管理类", "设计类", "市场类"];
+  const subClassOptions: Record<string, string[]> = {
+    "技术类": ["前端技术", "后端技术", "移动端技术", "数据技术", "算法技术", "运维技术"],
+    "产品类": ["用户产品", "商业产品", "数据产品", "技术产品"],
+    "管理类": ["技术管理", "产品管理", "项目管理", "团队管理"],
+    "设计类": ["UI设计", "UX设计", "视觉设计", "交互设计"],
+    "市场类": ["市场营销", "品牌推广", "渠道管理", "用户增长"]
+  };
+  const directionOptions: Record<string, string[]> = {
+    "技术类": ["前端", "后端", "全栈", "移动端", "数据", "算法", "运维"],
+    "产品类": ["C端产品", "B端产品", "平台产品", "数据产品"],
+    "管理类": ["人员管理", "项目管理", "战略管理", "运营管理"],
+    "设计类": ["用户界面", "用户体验", "视觉创意", "品牌设计"],
+    "市场类": ["线上营销", "线下营销", "品牌营销", "内容营销"]
+  };
+  const systemOptions = ["研发体系", "产品体系", "设计体系", "市场体系", "管理体系"];
+  
   // 添加标准选项
   const standardCategories = ["技术类", "产品类", "管理类", "设计类", "市场类"];
   const standardDirections = ["前端", "后端", "全栈", "移动端", "数据", "算法", "运维"];
@@ -486,6 +623,7 @@ export default function QualificationManagementPage() {
   // 表单状态
   const [formData, setFormData] = useState({
     category: "",
+    subClass: "", // 新增：子类
     direction: "",
     role: "",
     positionName: "",
@@ -697,9 +835,8 @@ export default function QualificationManagementPage() {
   const [selectedAbility, setSelectedAbility] = useState<string>("all");
   const [selectedSystem, setSelectedSystem] = useState<string>("all");
 
-  // 2. 提取能力和体系选项
+  // 2. 提取能力选项
   const abilityOptions = Object.keys(keyAbilityTags); // 如"商业敏锐" "技术前瞻"等
-  const systemOptions = Array.from(new Set(employeeData.map(emp => emp.system)));
 
   // 3. 根据筛选项过滤员工数据
   const filteredEmployeeData = employeeData.filter(emp => {
@@ -1000,7 +1137,9 @@ export default function QualificationManagementPage() {
     
     const systemMatch = selectedSystem === 'all' ? true : standard.system === selectedSystem;
     const departmentMatch = selectedDepartment === 'all' ? true : standard.department === selectedDepartment;
-    const categoryMatch = !selectedSequence || standard.category === selectedSequence;
+    const classMatch = selectedClass === "all" || standard.category === selectedClass;
+    const subClassMatch = selectedSubClass === "all" || true; // 暂时设为true，实际需要根据数据结构调整
+    const directionMatch = selectedDirection === "all" || true; // 暂时设为true，实际需要根据数据结构调整
     const positionMatch = !selectedPosition || standard.position === selectedPosition; 
     const roleMatch = !selectedRole || standard.role === selectedRole;
     const levelMatch = !selectedLevel || standard.level === selectedLevel;
@@ -1008,7 +1147,7 @@ export default function QualificationManagementPage() {
       (selectedHRBPType === 'multi' && filterOptions.manager) ||
       (selectedHRBPType === 'single' && filterOptions.system);
     
-    return searchMatch && systemMatch && departmentMatch && categoryMatch && positionMatch && roleMatch && levelMatch && hrbpMatch;
+    return searchMatch && systemMatch && departmentMatch && classMatch && subClassMatch && directionMatch && positionMatch && roleMatch && levelMatch && hrbpMatch;
   });
 
   // 编辑标准功能
@@ -1083,12 +1222,17 @@ export default function QualificationManagementPage() {
   const [selectedRadarEmployee, setSelectedRadarEmployee] = useState<string>("");
   const [selectedRadarTarget, setSelectedRadarTarget] = useState<string>("");
   const [radarFilters, setRadarFilters] = useState({
+    class: "all",
+    subClass: "all",
     system: "all",
     department: "all", 
     direction: "all",
     position: "all",
     challengeLevel: "all"
   });
+  
+  // 新增：雷达图状态
+  const [showRadarChart, setShowRadarChart] = useState(false);
 
   return (
     <div className="h-full pt-1 px-6 pb-4 space-y-2 bg-[#f4f7fa]">
@@ -1174,7 +1318,7 @@ export default function QualificationManagementPage() {
                       <SelectValue placeholder="体系" className="text-sm" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all" className="text-sm">全部体系</SelectItem>
+                      <SelectItem value="all" className="text-sm">体系</SelectItem>
                       {systemOptions.map((system) => (
                         <SelectItem key={system} value={system} className="text-sm">
                           {system}
@@ -1188,7 +1332,7 @@ export default function QualificationManagementPage() {
                       <SelectValue placeholder="部门" className="text-sm" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all" className="text-sm">全部部门</SelectItem>
+                      <SelectItem value="all" className="text-sm">部门</SelectItem>
                       <SelectItem value="研发部" className="text-sm">研发部</SelectItem>
                       <SelectItem value="产品部" className="text-sm">产品部</SelectItem>
                       <SelectItem value="设计部" className="text-sm">设计部</SelectItem>
@@ -1198,14 +1342,43 @@ export default function QualificationManagementPage() {
                     </SelectContent>
                   </Select>
                 
-                <Select value={selectedSequence} onValueChange={setSelectedSequence}>
+                <Select value={selectedClass} onValueChange={setSelectedClass}>
                   <SelectTrigger className="w-auto h-9 text-sm border-gray-200 px-3 py-1">
-                      <SelectValue placeholder="类别" className="text-sm" />
+                      <SelectValue placeholder="类" className="text-sm" />
                   </SelectTrigger>
                   <SelectContent>
-                      {standardCategories.map((category) => (
-                        <SelectItem key={category} value={category} className="text-sm">
-                          {category}
+                      <SelectItem value="all" className="text-sm">类</SelectItem>
+                      {classOptions.map((cls) => (
+                        <SelectItem key={cls} value={cls} className="text-sm">
+                          {cls}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select value={selectedSubClass} onValueChange={setSelectedSubClass}>
+                  <SelectTrigger className="w-auto h-9 text-sm border-gray-200 px-3 py-1">
+                      <SelectValue placeholder="子类" className="text-sm" />
+                  </SelectTrigger>
+                  <SelectContent>
+                      <SelectItem value="all" className="text-sm">子类</SelectItem>
+                      {selectedClass && selectedClass !== "all" && subClassOptions[selectedClass]?.map((subClass) => (
+                        <SelectItem key={subClass} value={subClass} className="text-sm">
+                          {subClass}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select value={selectedDirection} onValueChange={setSelectedDirection}>
+                  <SelectTrigger className="w-auto h-9 text-sm border-gray-200 px-3 py-1">
+                      <SelectValue placeholder="方向" className="text-sm" />
+                  </SelectTrigger>
+                  <SelectContent>
+                      <SelectItem value="all" className="text-sm">方向</SelectItem>
+                      {selectedClass && selectedClass !== "all" && directionOptions[selectedClass]?.map((direction) => (
+                        <SelectItem key={direction} value={direction} className="text-sm">
+                          {direction}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -1216,7 +1389,8 @@ export default function QualificationManagementPage() {
                       <SelectValue placeholder="职务" className="text-sm" />
                   </SelectTrigger>
                   <SelectContent>
-                      {selectedSequence && positionOptions[selectedSequence]?.map((position) => (
+                      <SelectItem value="all" className="text-sm">职务</SelectItem>
+                      {selectedClass && selectedClass !== "all" && positionOptions[selectedClass]?.map((position) => (
                       <SelectItem key={position} value={position} className="text-sm">
                         {position}
                       </SelectItem>
@@ -1255,7 +1429,7 @@ export default function QualificationManagementPage() {
                       <SelectValue placeholder="HRBP类型" className="text-sm" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all" className="text-sm">全部HRBP</SelectItem>
+                      <SelectItem value="all" className="text-sm">HRBP</SelectItem>
                       <SelectItem value="multi" className="text-sm">多体系HRBP</SelectItem>
                       <SelectItem value="single" className="text-sm">单体系HRBP</SelectItem>
                     </SelectContent>
@@ -1394,7 +1568,7 @@ export default function QualificationManagementPage() {
                       <SelectValue placeholder="体系" className="text-sm" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all" className="text-sm">全部体系</SelectItem>
+                      <SelectItem value="all" className="text-sm">体系</SelectItem>
                       {systemOptions.map((system) => (
                         <SelectItem key={system} value={system} className="text-sm">
                           {system}
@@ -1408,7 +1582,7 @@ export default function QualificationManagementPage() {
                       <SelectValue placeholder="部门" className="text-sm" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all" className="text-sm">全部部门</SelectItem>
+                      <SelectItem value="all" className="text-sm">部门</SelectItem>
                       <SelectItem value="研发部" className="text-sm">研发部</SelectItem>
                       <SelectItem value="产品部" className="text-sm">产品部</SelectItem>
                       <SelectItem value="设计部" className="text-sm">设计部</SelectItem>
@@ -1418,14 +1592,43 @@ export default function QualificationManagementPage() {
                     </SelectContent>
                   </Select>
                   
-                  <Select value={selectedSequence} onValueChange={setSelectedSequence}>
+                  <Select value={selectedClass} onValueChange={setSelectedClass}>
                     <SelectTrigger className="w-auto h-9 text-sm border-gray-200 px-3 py-1">
-                      <SelectValue placeholder="类别" className="text-sm" />
+                      <SelectValue placeholder="类" className="text-sm" />
                     </SelectTrigger>
                     <SelectContent>
-                      {standardCategories.map((category) => (
-                        <SelectItem key={category} value={category} className="text-sm">
-                          {category}
+                      <SelectItem value="all" className="text-sm">类</SelectItem>
+                      {classOptions.map((cls) => (
+                        <SelectItem key={cls} value={cls} className="text-sm">
+                          {cls}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  <Select value={selectedSubClass} onValueChange={setSelectedSubClass}>
+                    <SelectTrigger className="w-auto h-9 text-sm border-gray-200 px-3 py-1">
+                      <SelectValue placeholder="子类" className="text-sm" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all" className="text-sm">子类</SelectItem>
+                      {selectedClass && selectedClass !== "all" && subClassOptions[selectedClass]?.map((subClass) => (
+                        <SelectItem key={subClass} value={subClass} className="text-sm">
+                          {subClass}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  <Select value={selectedDirection} onValueChange={setSelectedDirection}>
+                    <SelectTrigger className="w-auto h-9 text-sm border-gray-200 px-3 py-1">
+                      <SelectValue placeholder="方向" className="text-sm" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all" className="text-sm">方向</SelectItem>
+                      {selectedClass && selectedClass !== "all" && directionOptions[selectedClass]?.map((direction) => (
+                        <SelectItem key={direction} value={direction} className="text-sm">
+                          {direction}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -1436,7 +1639,8 @@ export default function QualificationManagementPage() {
                       <SelectValue placeholder="职务" className="text-sm" />
                     </SelectTrigger>
                     <SelectContent>
-                      {selectedSequence && positionOptions[selectedSequence]?.map((position) => (
+                      <SelectItem value="all" className="text-sm">职务</SelectItem>
+                      {selectedClass && selectedClass !== "all" && positionOptions[selectedClass]?.map((position) => (
                         <SelectItem key={position} value={position} className="text-sm">
                           {position}
                         </SelectItem>
@@ -1650,8 +1854,9 @@ export default function QualificationManagementPage() {
             </CardHeader>
             <CardContent className="p-6">
               {/* 筛选区域 */}
-              <div className="mb-6">
-                <div className="flex items-center space-x-3 flex-wrap">
+              <div className="mb-6 space-y-3">
+                {/* 第一行：搜索框和常用筛选 */}
+                <div className="flex items-center space-x-3">
                   <div className="relative w-48">
                     <Input 
                       placeholder="输入流程名称或人名..." 
@@ -1665,11 +1870,41 @@ export default function QualificationManagementPage() {
                   </div>
                   
                   <Select 
+                    value={processFilters.class}
+                    onValueChange={(value) => handleProcessFilterChange('class', value)}
+                  >
+                    <SelectTrigger className="w-auto h-9 text-sm border-gray-200 px-3 py-1">
+                      <SelectValue placeholder="类" className="text-sm" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all" className="text-sm">类</SelectItem>
+                      {classOptions.map((cls) => (
+                        <SelectItem key={cls} value={cls} className="text-sm">{cls}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  
+                  <Select 
+                    value={processFilters.subClass}
+                    onValueChange={(value) => handleProcessFilterChange('subClass', value)}
+                  >
+                    <SelectTrigger className="w-auto h-9 text-sm border-gray-200 px-3 py-1">
+                      <SelectValue placeholder="子类" className="text-sm" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all" className="text-sm">子类</SelectItem>
+                      {processFilters.class && processFilters.class !== "all" && subClassOptions[processFilters.class]?.map((subClass) => (
+                        <SelectItem key={subClass} value={subClass} className="text-sm">{subClass}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  
+                  <Select 
                     value={processFilters.cycle} 
                     onValueChange={(value) => handleProcessFilterChange('cycle', value)}
                   >
                     <SelectTrigger className="w-auto h-9 text-sm border-gray-200 px-3 py-1">
-                      <SelectValue placeholder="认证周期" className="text-sm" />
+                      <SelectValue placeholder="周期" className="text-sm" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all" className="text-sm">全部</SelectItem>
@@ -1705,7 +1940,7 @@ export default function QualificationManagementPage() {
                     onValueChange={(value) => handleProcessFilterChange('department', value)}
                   >
                     <SelectTrigger className="w-auto h-9 text-sm border-gray-200 px-3 py-1">
-                        <SelectValue placeholder="所属部门" className="text-sm" />
+                        <SelectValue placeholder="部门" className="text-sm" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all" className="text-sm">全部</SelectItem>
@@ -1721,7 +1956,7 @@ export default function QualificationManagementPage() {
                     onValueChange={(value) => handleProcessFilterChange('sequence', value)}
                   >
                     <SelectTrigger className="w-auto h-9 text-sm border-gray-200 px-3 py-1">
-                      <SelectValue placeholder="岗位序列" className="text-sm" />
+                      <SelectValue placeholder="序列" className="text-sm" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all" className="text-sm">全部</SelectItem>
@@ -1749,60 +1984,15 @@ export default function QualificationManagementPage() {
                       <SelectItem value="项目管理" className="text-sm">项目管理</SelectItem>
                     </SelectContent>
                   </Select>
-
-                  <Select 
-                    value={processFilters.position} 
-                    onValueChange={(value) => handleProcessFilterChange('position', value)}
+                  
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="h-9 text-sm"
+                    onClick={() => setShowMoreProcessFilters(!showMoreProcessFilters)}
                   >
-                    <SelectTrigger className="w-auto h-9 text-sm border-gray-200 px-3 py-1">
-                      <SelectValue placeholder="职务" className="text-sm" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all" className="text-sm">全部</SelectItem>
-                      <SelectItem value="工程师" className="text-sm">工程师</SelectItem>
-                      <SelectItem value="高级工程师" className="text-sm">高级工程师</SelectItem>
-                      <SelectItem value="产品经理" className="text-sm">产品经理</SelectItem>
-                      <SelectItem value="项目经理" className="text-sm">项目经理</SelectItem>
-                      <SelectItem value="设计师" className="text-sm">设计师</SelectItem>
-                      <SelectItem value="高级设计师" className="text-sm">高级设计师</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  <Select 
-                    value={processFilters.level} 
-                    onValueChange={(value) => handleProcessFilterChange('level', value)}
-                  >
-                    <SelectTrigger className="w-auto h-9 text-sm border-gray-200 px-3 py-1">
-                      <SelectValue placeholder="认证技术职级" className="text-sm" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all" className="text-sm">全部</SelectItem>
-                      <SelectItem value="P3" className="text-sm">P3</SelectItem>
-                      <SelectItem value="P4" className="text-sm">P4</SelectItem>
-                      <SelectItem value="P5" className="text-sm">P5</SelectItem>
-                      <SelectItem value="P6" className="text-sm">P6</SelectItem>
-                      <SelectItem value="P7" className="text-sm">P7</SelectItem>
-                      <SelectItem value="P8" className="text-sm">P8</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  <Select 
-                    value={processFilters.role} 
-                    onValueChange={(value) => handleProcessFilterChange('role', value)}
-                  >
-                    <SelectTrigger className="w-auto h-9 text-sm border-gray-200 px-3 py-1">
-                      <SelectValue placeholder="横向角色" className="text-sm" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all" className="text-sm">全部</SelectItem>
-                      <SelectItem value="开发" className="text-sm">开发</SelectItem>
-                      <SelectItem value="产品" className="text-sm">产品</SelectItem>
-                      <SelectItem value="设计" className="text-sm">设计</SelectItem>
-                      <SelectItem value="项目管理" className="text-sm">项目管理</SelectItem>
-                      <SelectItem value="架构师" className="text-sm">架构师</SelectItem>
-                      <SelectItem value="技术专家" className="text-sm">技术专家</SelectItem>
-                    </SelectContent>
-                  </Select>
+                    {showMoreProcessFilters ? '收起筛选' : '更多筛选'}
+                  </Button>
                   
                   <Button 
                     variant="outline" 
@@ -1813,6 +2003,8 @@ export default function QualificationManagementPage() {
                       setProcessFilters({
                         name: "",
                         status: "",
+                        class: "all",
+                        subClass: "all",
                         sequence: "",
                         department: "",
                         system: "",
@@ -1828,6 +2020,65 @@ export default function QualificationManagementPage() {
                     重置
                   </Button>
                 </div>
+                
+                                 {/* 第二行：更多筛选（可折叠） */}
+                 {showMoreProcessFilters && (
+                   <div className="flex items-center space-x-3" style={{ marginLeft: '204px' }}>
+                     <Select 
+                       value={processFilters.position} 
+                       onValueChange={(value) => handleProcessFilterChange('position', value)}
+                     >
+                       <SelectTrigger className="w-auto h-9 text-sm border-gray-200 px-3 py-1">
+                         <SelectValue placeholder="职务" className="text-sm" />
+                       </SelectTrigger>
+                       <SelectContent>
+                         <SelectItem value="all" className="text-sm">全部</SelectItem>
+                         <SelectItem value="工程师" className="text-sm">工程师</SelectItem>
+                         <SelectItem value="高级工程师" className="text-sm">高级工程师</SelectItem>
+                         <SelectItem value="产品经理" className="text-sm">产品经理</SelectItem>
+                         <SelectItem value="项目经理" className="text-sm">项目经理</SelectItem>
+                         <SelectItem value="设计师" className="text-sm">设计师</SelectItem>
+                         <SelectItem value="高级设计师" className="text-sm">高级设计师</SelectItem>
+                       </SelectContent>
+                     </Select>
+
+                     <Select 
+                       value={processFilters.level} 
+                       onValueChange={(value) => handleProcessFilterChange('level', value)}
+                     >
+                       <SelectTrigger className="w-auto h-9 text-sm border-gray-200 px-3 py-1">
+                         <SelectValue placeholder="职级" className="text-sm" />
+                       </SelectTrigger>
+                       <SelectContent>
+                         <SelectItem value="all" className="text-sm">全部</SelectItem>
+                         <SelectItem value="P3" className="text-sm">P3</SelectItem>
+                         <SelectItem value="P4" className="text-sm">P4</SelectItem>
+                         <SelectItem value="P5" className="text-sm">P5</SelectItem>
+                         <SelectItem value="P6" className="text-sm">P6</SelectItem>
+                         <SelectItem value="P7" className="text-sm">P7</SelectItem>
+                         <SelectItem value="P8" className="text-sm">P8</SelectItem>
+                       </SelectContent>
+                     </Select>
+
+                     <Select 
+                       value={processFilters.role} 
+                       onValueChange={(value) => handleProcessFilterChange('role', value)}
+                     >
+                       <SelectTrigger className="w-auto h-9 text-sm border-gray-200 px-3 py-1">
+                         <SelectValue placeholder="角色" className="text-sm" />
+                       </SelectTrigger>
+                       <SelectContent>
+                         <SelectItem value="all" className="text-sm">全部</SelectItem>
+                         <SelectItem value="开发" className="text-sm">开发</SelectItem>
+                         <SelectItem value="产品" className="text-sm">产品</SelectItem>
+                         <SelectItem value="设计" className="text-sm">设计</SelectItem>
+                         <SelectItem value="项目管理" className="text-sm">项目管理</SelectItem>
+                         <SelectItem value="架构师" className="text-sm">架构师</SelectItem>
+                         <SelectItem value="技术专家" className="text-sm">技术专家</SelectItem>
+                       </SelectContent>
+                     </Select>
+                   </div>
+                 )}
               </div>
               
               {/* 流程列表表格 */}
@@ -2074,6 +2325,36 @@ export default function QualificationManagementPage() {
                 <div className="mb-6">
                   <div className="flex items-center space-x-3 flex-wrap">
                     <Select 
+                      value={radarFilters.class}
+                      onValueChange={(value) => setRadarFilters(prev => ({...prev, class: value}))}
+                    >
+                      <SelectTrigger className="w-auto h-9 text-sm border-gray-200 px-3 py-1">
+                        <SelectValue placeholder="类" className="text-sm" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all" className="text-sm">类</SelectItem>
+                        {classOptions.map((cls) => (
+                          <SelectItem key={cls} value={cls} className="text-sm">{cls}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    
+                    <Select 
+                      value={radarFilters.subClass}
+                      onValueChange={(value) => setRadarFilters(prev => ({...prev, subClass: value}))}
+                    >
+                      <SelectTrigger className="w-auto h-9 text-sm border-gray-200 px-3 py-1">
+                        <SelectValue placeholder="子类" className="text-sm" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all" className="text-sm">子类</SelectItem>
+                        {radarFilters.class && radarFilters.class !== "all" && subClassOptions[radarFilters.class]?.map((subClass) => (
+                          <SelectItem key={subClass} value={subClass} className="text-sm">{subClass}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    
+                    <Select 
                       value={radarFilters.system}
                       onValueChange={(value) => setRadarFilters(prev => ({...prev, system: value}))}
                     >
@@ -2081,7 +2362,7 @@ export default function QualificationManagementPage() {
                         <SelectValue placeholder="体系" className="text-sm" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all" className="text-sm">全部体系</SelectItem>
+                        <SelectItem value="all" className="text-sm">体系</SelectItem>
                         <SelectItem value="研发体系" className="text-sm">研发体系</SelectItem>
                         <SelectItem value="产品体系" className="text-sm">产品体系</SelectItem>
                         <SelectItem value="设计体系" className="text-sm">设计体系</SelectItem>
@@ -2097,7 +2378,7 @@ export default function QualificationManagementPage() {
                         <SelectValue placeholder="部门" className="text-sm" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all" className="text-sm">全部部门</SelectItem>
+                        <SelectItem value="all" className="text-sm">部门</SelectItem>
                         <SelectItem value="研发部" className="text-sm">研发部</SelectItem>
                         <SelectItem value="产品部" className="text-sm">产品部</SelectItem>
                         <SelectItem value="设计部" className="text-sm">设计部</SelectItem>
@@ -2113,7 +2394,7 @@ export default function QualificationManagementPage() {
                         <SelectValue placeholder="方向" className="text-sm" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all" className="text-sm">全部方向</SelectItem>
+                        <SelectItem value="all" className="text-sm">方向</SelectItem>
                         <SelectItem value="前端开发" className="text-sm">前端开发</SelectItem>
                         <SelectItem value="后端开发" className="text-sm">后端开发</SelectItem>
                         <SelectItem value="全栈开发" className="text-sm">全栈开发</SelectItem>
@@ -2131,7 +2412,7 @@ export default function QualificationManagementPage() {
                         <SelectValue placeholder="职务" className="text-sm" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all" className="text-sm">全部职务</SelectItem>
+                        <SelectItem value="all" className="text-sm">职务</SelectItem>
                         <SelectItem value="工程师" className="text-sm">工程师</SelectItem>
                         <SelectItem value="高级工程师" className="text-sm">高级工程师</SelectItem>
                         <SelectItem value="产品经理" className="text-sm">产品经理</SelectItem>
@@ -2149,7 +2430,7 @@ export default function QualificationManagementPage() {
                         <SelectValue placeholder="挑战者级别" className="text-sm" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all" className="text-sm">全部级别</SelectItem>
+                        <SelectItem value="all" className="text-sm">级别</SelectItem>
                         <SelectItem value="13L" className="text-sm">13L</SelectItem>
                         <SelectItem value="13M" className="text-sm">13M</SelectItem>
                         <SelectItem value="13H" className="text-sm">13H</SelectItem>
@@ -2165,6 +2446,8 @@ export default function QualificationManagementPage() {
                       className="h-9 text-sm px-3"
                       onClick={() => {
                         setRadarFilters({
+                          class: "all",
+                          subClass: "all",
                           system: "all",
                           department: "all", 
                           direction: "all",
@@ -2189,14 +2472,16 @@ export default function QualificationManagementPage() {
                         <table className="min-w-full divide-y divide-gray-200">
                           <thead className="bg-gray-50 sticky top-0 z-10">
                             <tr>
-                              <th scope="col" className="px-4 py-3 text-center text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-16">选择</th>
-                              <th scope="col" className="px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-24">姓名</th>
-                              <th scope="col" className="px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-24">职务</th>
-                              <th scope="col" className="px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-24">体系</th>
-                              <th scope="col" className="px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-24">部门</th>
+                              <th scope="col" className="px-3 py-3 text-center text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-12">选择</th>
+                              <th scope="col" className="px-3 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-20">姓名</th>
+                              <th scope="col" className="px-3 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-24">职务</th>
+                              <th scope="col" className="px-3 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-20">体系</th>
+                              <th scope="col" className="px-3 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-16">部门</th>
+                              <th scope="col" className="px-3 py-3 text-center text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-16">分数</th>
                             </tr>
                           </thead>
                           <tbody className="bg-white divide-y divide-gray-200">
+                            {/* TODO: 对接后台API - GET /api/radar/employees */}
                             {[
                               { id: "EMP001", name: "李十三", position: "高级工程师", system: "研发体系", department: "研发部", score: 85 },
                               { id: "EMP002", name: "张小明", position: "产品经理", system: "产品体系", department: "产品部", score: 92 },
@@ -2214,7 +2499,7 @@ export default function QualificationManagementPage() {
                                 }`}
                                 onClick={() => setSelectedRadarEmployee(employee.id)}
                               >
-                                <td className="px-4 py-3 whitespace-nowrap text-center">
+                                <td className="px-3 py-3 whitespace-nowrap text-center">
                                   <input 
                                     type="radio" 
                                     name="employee-selection"
@@ -2223,17 +2508,28 @@ export default function QualificationManagementPage() {
                                     className="w-4 h-4 text-[#3C5E5C] border-gray-300 focus:ring-[#3C5E5C]"
                                   />
                                 </td>
-                                <td className="px-4 py-3 whitespace-nowrap">
+                                <td className="px-3 py-3 whitespace-nowrap">
                                   <div className="text-sm font-medium text-gray-900">{employee.name}</div>
                                 </td>
-                                <td className="px-4 py-3 whitespace-nowrap">
-                                  <div className="text-sm font-medium text-gray-900">{employee.position}</div>
+                                <td className="px-3 py-3 whitespace-nowrap">
+                                  <div className="text-sm text-gray-900">{employee.position}</div>
                                 </td>
-                                <td className="px-4 py-3 whitespace-nowrap">
-                                  <div className="text-sm font-medium text-gray-900">{employee.system}</div>
+                                <td className="px-3 py-3 whitespace-nowrap">
+                                  <div className="text-sm text-gray-900">{employee.system}</div>
                                 </td>
-                                <td className="px-4 py-3 whitespace-nowrap">
-                                  <div className="text-sm font-medium text-gray-900">{employee.department}</div>
+                                <td className="px-3 py-3 whitespace-nowrap">
+                                  <div className="text-sm text-gray-900">{employee.department}</div>
+                                </td>
+                                <td className="px-3 py-3 whitespace-nowrap text-center">
+                                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                    employee.score >= 90 
+                                      ? "bg-green-100 text-green-800" 
+                                      : employee.score >= 80 
+                                      ? "bg-yellow-100 text-yellow-800" 
+                                      : "bg-red-100 text-red-800"
+                                  }`}>
+                                    {employee.score}
+                                  </span>
                                 </td>
                               </tr>
                             ))}
@@ -2252,14 +2548,16 @@ export default function QualificationManagementPage() {
                         <table className="min-w-full divide-y divide-gray-200">
                           <thead className="bg-gray-50 sticky top-0 z-10">
                             <tr>
-                              <th scope="col" className="px-4 py-3 text-center text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-16">选择</th>
-                              <th scope="col" className="px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-32">标准名称</th>
-                              <th scope="col" className="px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-20">级别</th>
-                              <th scope="col" className="px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-24">体系</th>
-                              <th scope="col" className="px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-24">部门</th>
+                              <th scope="col" className="px-3 py-3 text-center text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-12">选择</th>
+                              <th scope="col" className="px-3 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-32">标准名称</th>
+                              <th scope="col" className="px-3 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-16">级别</th>
+                              <th scope="col" className="px-3 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-20">体系</th>
+                              <th scope="col" className="px-3 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-16">部门</th>
+                              <th scope="col" className="px-3 py-3 text-center text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-16">分数</th>
                             </tr>
                           </thead>
                           <tbody className="bg-white divide-y divide-gray-200">
+                            {/* TODO: 对接后台API - GET /api/radar/targets */}
                             {[
                               { id: "TARGET001", name: "前端开发P5标准", level: "P5", system: "研发体系", department: "研发部", targetScore: 90 },
                               { id: "TARGET002", name: "后端开发P6标准", level: "P6", system: "研发体系", department: "研发部", targetScore: 95 },
@@ -2277,7 +2575,7 @@ export default function QualificationManagementPage() {
                                 }`}
                                 onClick={() => setSelectedRadarTarget(target.id)}
                               >
-                                <td className="px-4 py-3 whitespace-nowrap text-center">
+                                <td className="px-3 py-3 whitespace-nowrap text-center">
                                   <input 
                                     type="radio" 
                                     name="target-selection"
@@ -2286,17 +2584,28 @@ export default function QualificationManagementPage() {
                                     className="w-4 h-4 text-[#3C5E5C] border-gray-300 focus:ring-[#3C5E5C]"
                                   />
                                 </td>
-                                <td className="px-4 py-3 whitespace-nowrap">
+                                <td className="px-3 py-3 whitespace-nowrap">
                                   <div className="text-sm font-medium text-gray-900">{target.name}</div>
                                 </td>
-                                <td className="px-4 py-3 whitespace-nowrap">
-                                  <div className="text-sm font-medium text-gray-900">{target.level}</div>
+                                <td className="px-3 py-3 whitespace-nowrap">
+                                  <div className="text-sm text-gray-900">{target.level}</div>
                                 </td>
-                                <td className="px-4 py-3 whitespace-nowrap">
-                                  <div className="text-sm font-medium text-gray-900">{target.system}</div>
+                                <td className="px-3 py-3 whitespace-nowrap">
+                                  <div className="text-sm text-gray-900">{target.system}</div>
                                 </td>
-                                <td className="px-4 py-3 whitespace-nowrap">
-                                  <div className="text-sm font-medium text-gray-900">{target.department}</div>
+                                <td className="px-3 py-3 whitespace-nowrap">
+                                  <div className="text-sm text-gray-900">{target.department}</div>
+                                </td>
+                                <td className="px-3 py-3 whitespace-nowrap text-center">
+                                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                    target.targetScore >= 90 
+                                      ? "bg-blue-100 text-blue-800" 
+                                      : target.targetScore >= 85 
+                                      ? "bg-green-100 text-green-800" 
+                                      : "bg-yellow-100 text-yellow-800"
+                                  }`}>
+                                    {target.targetScore}
+                                  </span>
                                 </td>
                               </tr>
                             ))}
@@ -2312,6 +2621,7 @@ export default function QualificationManagementPage() {
                   <Button 
                     className="w-full bg-[#3C5E5C] hover:bg-[#2A4A48] text-white"
                     disabled={!selectedRadarEmployee || !selectedRadarTarget}
+                    onClick={() => setShowRadarChart(true)}
                   >
                     开始对比分析
                   </Button>
@@ -2325,16 +2635,246 @@ export default function QualificationManagementPage() {
                 
                 {/* 能力雷达图显示区域 */}
                 <div className="w-full">
-                  <div className="border border-gray-200 rounded-lg p-6 bg-gray-50 min-h-[500px] flex items-center justify-center">
-                    <div className="text-center text-gray-500">
-                      <svg className="w-20 h-20 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                      </svg>
-                      <p className="text-lg font-medium">雷达图显示区域</p>
-                      <p className="text-sm mt-2">请选择员工和目标后点击对比</p>
-                      <p className="text-xs text-gray-400 mt-1">雷达图将显示能力差距分析</p>
+                  {showRadarChart ? (
+                    <div className="border border-gray-200 rounded-lg p-6 bg-white min-h-[900px]">
+                      <div className="flex items-center justify-between mb-6">
+                        <h4 className="text-lg font-medium text-gray-900">能力雷达图对比分析</h4>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => setShowRadarChart(false)}
+                          className="text-gray-600"
+                        >
+                          重新选择
+                        </Button>
+                      </div>
+                      
+                      {/* 雷达图图表区域 */}
+                      <div className="flex flex-col items-center">
+                        <div className="w-full max-w-[900px] h-[700px] relative mx-auto overflow-visible">
+                          {/* SVG雷达图 */}
+                          <svg width="800" height="700" viewBox="0 0 800 700" className="w-full h-full" preserveAspectRatio="xMidYMid meet">
+                            {/* 背景网格 */}
+                            <g transform="translate(400, 350)">
+                              {/* 5个同心圆 - 20分制 */}
+                              {[50, 100, 150, 200, 250].map((radius, index) => (
+                                <circle
+                                  key={index}
+                                  cx={0}
+                                  cy={0}
+                                  r={radius}
+                                  fill="none"
+                                  stroke="#e5e7eb"
+                                  strokeWidth={1}
+                                />
+                              ))}
+                              
+                              {/* 分数刻度标注 */}
+                              {[4, 8, 12, 16, 20].map((score, index) => (
+                                <text
+                                  key={`scale-${index}`}
+                                  x={50 + index * 50}
+                                  y={-5}
+                                  textAnchor="middle"
+                                  className="text-xs fill-gray-400"
+                                >
+                                  {score}
+                                </text>
+                              ))}
+                              
+                              {/* 5条放射线 */}
+                              {[0, 72, 144, 216, 288].map((angle, index) => {
+                                const x = Math.cos((angle - 90) * Math.PI / 180) * 250;
+                                const y = Math.sin((angle - 90) * Math.PI / 180) * 250;
+                                return (
+                                  <line
+                                    key={index}
+                                    x1={0}
+                                    y1={0}
+                                    x2={x}
+                                    y2={y}
+                                    stroke="#e5e7eb"
+                                    strokeWidth={1}
+                                  />
+                                );
+                              })}
+                              
+                              {/* 员工数据多边形 */}
+                              <polygon
+                                points={[
+                                  [0, 72, 144, 216, 288].map((angle, index) => {
+                                    const values = [10, 14, 16, 12, 15]; // 员工能力值（20分制）
+                                    const radius = (values[index] / 20) * 250;
+                                    const x = Math.cos((angle - 90) * Math.PI / 180) * radius;
+                                    const y = Math.sin((angle - 90) * Math.PI / 180) * radius;
+                                    return `${x},${y}`;
+                                  }).join(' ')
+                                ][0]}
+                                fill="rgba(59, 94, 92, 0.3)"
+                                stroke="#3C5E5C"
+                                strokeWidth={2}
+                              />
+                              
+                              {/* 目标标准多边形 - 浅绿色 */}
+                              <polygon
+                                points={[
+                                  [0, 72, 144, 216, 288].map((angle, index) => {
+                                    const values = [18, 16, 17, 18, 19]; // 目标标准值（20分制）
+                                    const radius = (values[index] / 20) * 250;
+                                    const x = Math.cos((angle - 90) * Math.PI / 180) * radius;
+                                    const y = Math.sin((angle - 90) * Math.PI / 180) * radius;
+                                    return `${x},${y}`;
+                                  }).join(' ')
+                                ][0]}
+                                fill="rgba(34, 197, 94, 0.3)"
+                                stroke="#22c55e"
+                                strokeWidth={2}
+                              />
+                              
+                              {/* 员工数据点 */}
+                              {[0, 72, 144, 216, 288].map((angle, index) => {
+                                const values = [10, 14, 16, 12, 15];
+                                const radius = (values[index] / 20) * 250;
+                                const x = Math.cos((angle - 90) * Math.PI / 180) * radius;
+                                const y = Math.sin((angle - 90) * Math.PI / 180) * radius;
+                                return (
+                                  <circle
+                                    key={`employee-${index}`}
+                                    cx={x}
+                                    cy={y}
+                                    r={4}
+                                    fill="#3C5E5C"
+                                  />
+                                );
+                              })}
+                              
+                              {/* 目标数据点 */}
+                              {[0, 72, 144, 216, 288].map((angle, index) => {
+                                const values = [18, 16, 17, 18, 19];
+                                const radius = (values[index] / 20) * 250;
+                                const x = Math.cos((angle - 90) * Math.PI / 180) * radius;
+                                const y = Math.sin((angle - 90) * Math.PI / 180) * radius;
+                                return (
+                                  <circle
+                                    key={`target-${index}`}
+                                    cx={x}
+                                    cy={y}
+                                    r={4}
+                                    fill="#22c55e"
+                                  />
+                                );
+                              })}
+                            </g>
+                            
+                            {/* 维度标签 */}
+                            {[
+                              { label: '战略规划', short: '战略规划' },
+                              { label: '架构/方案设计', short: '架构设计' },
+                              { label: '方案实施/落地', short: '方案实施' },
+                              { label: '运维/运营', short: '运维运营' },
+                              { label: '问题解决与优化', short: '问题解决' }
+                            ].map((item, index) => {
+                              const angle = [0, 72, 144, 216, 288][index];
+                              const radius = 280; // 缩短标签距离
+                              const x = 400 + Math.cos((angle - 90) * Math.PI / 180) * radius;
+                              const y = 350 + Math.sin((angle - 90) * Math.PI / 180) * radius;
+                              
+                              // 根据角度调整文本锚点，避免标签被裁剪
+                              let textAnchor = "middle";
+                              if (x < 400) textAnchor = "end";
+                              else if (x > 400) textAnchor = "start";
+                              
+                              return (
+                                <g key={index}>
+                                  {/* 完整标签 */}
+                                  <text
+                                    x={x}
+                                    y={y - 5}
+                                    textAnchor={textAnchor}
+                                    dominantBaseline="middle"
+                                    className="text-sm font-medium fill-gray-700"
+                                  >
+                                    {item.label}
+                                  </text>
+                                  {/* 分数显示位置预留 */}
+                                  <text
+                                    x={x}
+                                    y={y + 12}
+                                    textAnchor={textAnchor}
+                                    dominantBaseline="middle"
+                                    className="text-xs fill-gray-500"
+                                  >
+                                    {/* 这里可以显示具体分数 */}
+                                  </text>
+                                </g>
+                              );
+                            })}
+                          </svg>
+                        </div>
+                        
+                        {/* 图例 */}
+                        <div className="flex items-center space-x-6 mt-4">
+                          <div className="flex items-center space-x-2">
+                            <div className="w-4 h-4 bg-[#3C5E5C] rounded"></div>
+                            <span className="text-sm text-gray-600">当前员工能力</span>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <div className="w-4 h-4 bg-green-500 rounded"></div>
+                            <span className="text-sm text-gray-600">目标标准要求</span>
+                          </div>
+                        </div>
+                        
+                        {/* 数据表格 */}
+                        <div className="mt-6 w-full max-w-2xl">
+                          <table className="w-full border border-gray-200 rounded-lg">
+                            <thead className="bg-gray-50">
+                              <tr>
+                                <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">能力维度</th>
+                                <th className="px-4 py-3 text-center text-sm font-medium text-gray-500">员工当前</th>
+                                <th className="px-4 py-3 text-center text-sm font-medium text-gray-500">目标标准</th>
+                                <th className="px-4 py-3 text-center text-sm font-medium text-gray-500">差距</th>
+                              </tr>
+                            </thead>
+                            <tbody className="bg-white divide-y divide-gray-200">
+                              {[
+                                { dimension: '战略规划', employee: 10, target: 18, gap: -8 },
+                                { dimension: '架构/方案设计', employee: 14, target: 16, gap: -2 },
+                                { dimension: '方案实施/落地', employee: 16, target: 17, gap: -1 },
+                                { dimension: '运维/运营', employee: 12, target: 18, gap: -6 },
+                                { dimension: '问题解决与优化', employee: 15, target: 19, gap: -4 }
+                              ].map((row, index) => (
+                                <tr key={index}>
+                                  <td className="px-4 py-3 text-sm font-medium text-gray-900">{row.dimension}</td>
+                                  <td className="px-4 py-3 text-center text-sm text-gray-900">{row.employee}</td>
+                                  <td className="px-4 py-3 text-center text-sm text-gray-900">{row.target}</td>
+                                  <td className="px-4 py-3 text-center text-sm">
+                                    <span className={`px-2 py-1 rounded-full text-xs ${
+                                      row.gap >= 0 
+                                        ? "bg-green-100 text-green-700" 
+                                        : "bg-red-100 text-red-700"
+                                    }`}>
+                                      {row.gap >= 0 ? `+${row.gap}` : row.gap}
+                                    </span>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    <div className="border border-gray-200 rounded-lg p-6 bg-gray-50 min-h-[500px] flex items-center justify-center">
+                      <div className="text-center text-gray-500">
+                        <svg className="w-20 h-20 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                        <p className="text-lg font-medium">雷达图显示区域</p>
+                        <p className="text-sm mt-2">请选择员工和目标后点击对比</p>
+                        <p className="text-xs text-gray-400 mt-1">雷达图将显示能力差距分析</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </CardContent>
@@ -2369,8 +2909,20 @@ export default function QualificationManagementPage() {
                       <p className="text-sm font-medium">{selectedEmployee.sequence}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">岗位名称/横向角色</p>
-                      <p className="text-sm font-medium">{selectedEmployee.position} / {selectedEmployee.role}</p>
+                      <p className="text-sm text-gray-500">类</p>
+                      <p className="text-sm font-medium">{selectedEmployee.category}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">子类</p>
+                      <p className="text-sm font-medium">{selectedEmployee.subClass}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">岗位名称</p>
+                      <p className="text-sm font-medium">{selectedEmployee.position}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">横向角色</p>
+                      <p className="text-sm font-medium">{selectedEmployee.role}</p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-500">体系</p>
@@ -2385,16 +2937,8 @@ export default function QualificationManagementPage() {
                       <p className="text-sm font-medium">{selectedEmployee.team}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">岗位工程部长</p>
-                      <p className="text-sm font-medium">{selectedEmployee.engineeringDirector}</p>
-                    </div>
-                    <div>
                       <p className="text-sm text-gray-500">直接上级</p>
                       <p className="text-sm font-medium">{selectedEmployee.directManager}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">团队负责人</p>
-                      <p className="text-sm font-medium">{selectedEmployee.teamLeader}</p>
                     </div>
                   </div>
                 </div>
@@ -3083,17 +3627,38 @@ export default function QualificationManagementPage() {
               </div>
             </div>
             
-            {/* 类别、职务、方向和角色选择（中部） */}
-            <div className="grid grid-cols-4 gap-4">
+            {/* 类、子类、职务、方向和角色选择（中部） */}
+            <div className="grid grid-cols-5 gap-4">
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">类别</label>
-                <Select value={formData.category} onValueChange={(value) => updateFormData("category", value)}>
+                <label className="block text-sm font-medium text-gray-700">类</label>
+                <Select value={formData.category} onValueChange={(value) => {
+                  updateFormData("category", value);
+                  updateFormData("subClass", ""); // 重置子类选择
+                }}>
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="选择类别" />
+                    <SelectValue placeholder="选择类" />
                   </SelectTrigger>
                   <SelectContent>
-                    {standardCategories.map(category => (
+                    {classOptions.map(category => (
                       <SelectItem key={category} value={category}>{category}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">子类</label>
+                <Select 
+                  value={formData.subClass} 
+                  onValueChange={(value) => updateFormData("subClass", value)}
+                  disabled={!formData.category}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="选择子类" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {formData.category && subClassOptions[formData.category]?.map(subClass => (
+                      <SelectItem key={subClass} value={subClass}>{subClass}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -3119,12 +3684,16 @@ export default function QualificationManagementPage() {
               
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-gray-700">方向</label>
-                <Select value={formData.direction} onValueChange={(value) => updateFormData("direction", value)}>
+                <Select 
+                  value={formData.direction} 
+                  onValueChange={(value) => updateFormData("direction", value)}
+                  disabled={!formData.category}
+                >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="选择方向" />
                   </SelectTrigger>
                   <SelectContent>
-                    {standardDirections.map(direction => (
+                    {formData.category && directionOptions[formData.category]?.map(direction => (
                       <SelectItem key={direction} value={direction}>{direction}</SelectItem>
                     ))}
                   </SelectContent>
@@ -3697,17 +4266,31 @@ export default function QualificationManagementPage() {
                 </div>
               </div>
               
-              {/* 类别、职务、方向和角色选择（中部） */}
-              <div className="grid grid-cols-4 gap-4">
+              {/* 类、子类、职务、方向和角色选择（中部） */}
+              <div className="grid grid-cols-5 gap-4">
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">类别</label>
+                  <label className="block text-sm font-medium text-gray-700">类</label>
                   <Select defaultValue={editingStandard.category || ""}>
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="选择类别" />
+                      <SelectValue placeholder="选择类" />
                     </SelectTrigger>
                     <SelectContent>
-                      {standardCategories.map(category => (
+                      {classOptions.map(category => (
                         <SelectItem key={category} value={category}>{category}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">子类</label>
+                  <Select defaultValue={editingStandard.subClass || ""}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="选择子类" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {editingStandard.category && subClassOptions[editingStandard.category]?.map(subClass => (
+                        <SelectItem key={subClass} value={subClass}>{subClass}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -3734,7 +4317,7 @@ export default function QualificationManagementPage() {
                       <SelectValue placeholder="选择方向" />
                     </SelectTrigger>
                     <SelectContent>
-                      {standardDirections.map(direction => (
+                      {editingStandard.category && directionOptions[editingStandard.category]?.map(direction => (
                         <SelectItem key={direction} value={direction}>{direction}</SelectItem>
                       ))}
                     </SelectContent>
