@@ -899,6 +899,9 @@ export default function TalentStandardsPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [editingSkill, setEditingSkill] = useState<AbilitySkillItem | null>(null);
 
+  // 添加能力等级描述选择状态
+  const [selectedLevels, setSelectedLevels] = useState<string[]>([]);
+
   // 添加处理保存编辑的函数
   const handleSaveEdit = () => {
     if (!editingSkill || !selectedKnowledgeSkill) return;
@@ -925,6 +928,8 @@ export default function TalentStandardsPage() {
     setSelectedKnowledgeSkill(editingSkill);
     setIsEditing(false);
     setEditingSkill(null);
+    setSelectedLevels([]); // 清空等级选择状态
+    setEditingDynamicLevels([]); // 清空编辑动态等级状态
   };
 
   // 添加直接下载模板的函数
@@ -1064,6 +1069,131 @@ export default function TalentStandardsPage() {
     setActiveProfileTab("岗位模型");
   };
 
+  // 在组件顶部添加动态等级管理状态
+  const [dynamicLevels, setDynamicLevels] = useState<string[]>(["1", "2", "3", "4", "5"]);
+  
+  // 添加编辑模式下的动态等级状态
+  const [editingDynamicLevels, setEditingDynamicLevels] = useState<string[]>([]);
+  
+  // 添加等级的函数
+  const addLevel = () => {
+    const nextLevel = (parseInt(dynamicLevels[dynamicLevels.length - 1]) + 1).toString();
+    setDynamicLevels([...dynamicLevels, nextLevel]);
+    setNewAbility(prev => ({
+      ...prev,
+      levelDescriptions: {
+        ...prev.levelDescriptions,
+        [nextLevel]: ''
+      }
+    }));
+  };
+
+  // 删除等级的函数
+  const removeLevel = (level: string) => {
+    if (dynamicLevels.length <= 1) return; // 至少保留一个等级
+    const updatedLevels = dynamicLevels.filter(l => l !== level);
+    setDynamicLevels(updatedLevels);
+    
+    const updatedDescriptions = { ...newAbility.levelDescriptions };
+    delete updatedDescriptions[level];
+    setNewAbility(prev => ({
+      ...prev,
+      levelDescriptions: updatedDescriptions
+    }));
+  };
+
+  // 添加编辑模式下的等级管理函数
+  const addEditingLevel = () => {
+    if (!editingSkill) return;
+    
+    // 获取当前已有等级列表
+    const currentLevels = editingDynamicLevels.length > 0 
+      ? editingDynamicLevels 
+      : Object.keys(editingSkill.levelDescriptions || {}).filter(level => 
+          editingSkill.levelDescriptions?.hasOwnProperty(level)
+        ).sort((a, b) => parseInt(a) - parseInt(b));
+    
+    // 计算下一个等级号
+    const maxLevel = currentLevels.length > 0 
+      ? Math.max(...currentLevels.map(l => parseInt(l))) 
+      : 0;
+    const nextLevel = (maxLevel + 1).toString();
+    
+    // 更新等级列表
+    const updatedLevels = [...currentLevels, nextLevel];
+    setEditingDynamicLevels(updatedLevels);
+    
+    // 添加新等级描述
+    setEditingSkill({
+      ...editingSkill,
+      levelDescriptions: {
+        ...editingSkill.levelDescriptions,
+        [nextLevel]: ''
+      }
+    });
+  };
+
+  // 获取当前显示的等级列表
+  const getCurrentLevels = () => {
+    if (isEditing && editingSkill) {
+      if (editingDynamicLevels.length > 0) {
+        return editingDynamicLevels;
+      }
+      // 直接从editingSkill.levelDescriptions中获取现有等级，不使用hasOwnProperty过滤
+      return Object.keys(editingSkill.levelDescriptions || {})
+        .sort((a, b) => parseInt(a) - parseInt(b));
+    } else if (selectedKnowledgeSkill) {
+      // 直接从selectedKnowledgeSkill.levelDescriptions中获取现有等级
+      return Object.keys(selectedKnowledgeSkill.levelDescriptions || {})
+        .sort((a, b) => parseInt(a) - parseInt(b));
+    }
+    return ["1", "2", "3", "4", "5"]; // 默认等级
+  };
+
+  // 暂存功能
+  const handleSaveAsDraft = () => {
+    // 这里可以添加暂存到本地存储或后端的逻辑
+    console.log("暂存能力项:", newAbility);
+    alert("已暂存到草稿箱");
+  };
+
+  // 添加专业素质动态等级管理状态
+  const [professionalDynamicLevels, setProfessionalDynamicLevels] = useState<string[]>(["1", "2", "3", "4", "5"]);
+  const [selectedProfessionalLevels, setSelectedProfessionalLevels] = useState<string[]>([]);
+
+  // 添加专业素质等级管理函数
+  const addProfessionalLevel = () => {
+    const nextLevel = (parseInt(professionalDynamicLevels[professionalDynamicLevels.length - 1]) + 1).toString();
+    setProfessionalDynamicLevels([...professionalDynamicLevels, nextLevel]);
+    setNewProfessionalAbility(prev => ({
+      ...prev,
+      levelDescriptions: {
+        ...prev.levelDescriptions,
+        [nextLevel]: ''
+      }
+    }));
+  };
+
+  // 删除专业素质等级的函数
+  const removeProfessionalLevel = (level: string) => {
+    if (professionalDynamicLevels.length <= 1) return; // 至少保留一个等级
+    const updatedLevels = professionalDynamicLevels.filter(l => l !== level);
+    setProfessionalDynamicLevels(updatedLevels);
+    
+    const updatedDescriptions = { ...newProfessionalAbility.levelDescriptions };
+    delete updatedDescriptions[level];
+    setNewProfessionalAbility(prev => ({
+      ...prev,
+      levelDescriptions: updatedDescriptions
+    }));
+  };
+
+  // 专业素质暂存功能
+  const handleProfessionalSaveAsDraft = () => {
+    console.log("暂存专业素质:", newProfessionalAbility);
+    alert("已暂存到草稿箱");
+  };
+
   return (
     <div className="h-full pt-1 px-6 pb-4 space-y-2 bg-[#F3F7FA]">
       <div className="mb-1">
@@ -1169,7 +1299,29 @@ export default function TalentStandardsPage() {
                                 }}
                               >
                                 <DialogTrigger asChild>
-                                  <button className="text-xs text-[#3C5E5C] hover:text-[#2A4A48] flex items-center px-2 py-1 border border-[#3C5E5C] rounded">
+                                  <button 
+                                    className="text-xs text-[#3C5E5C] hover:text-[#2A4A48] flex items-center px-2 py-1 border border-[#3C5E5C] rounded"
+                                    onClick={() => {
+                                      // 重置动态等级状态
+                                      setDynamicLevels(["1", "2", "3", "4", "5"]);
+                                      // 重置新能力状态
+                                      setNewAbility({
+                                        name: "",
+                                        description: "",
+                                        type: ability.type,
+                                        tag: "",
+                                        code: "",
+                                        positions: "",
+                                        levelDescriptions: {
+                                          "1": '',
+                                          "2": '',
+                                          "3": '',
+                                          "4": '',
+                                          "5": ''
+                                        }
+                                      });
+                                    }}
+                                  >
                                     <PlusIcon size={12} className="mr-1" />
                                     <span>添加</span>
                                   </button>
@@ -1234,7 +1386,7 @@ export default function TalentStandardsPage() {
                                       <div className="space-y-2">
                                         <label className="text-sm font-medium">能力等级描述</label>
                                         <div className="grid grid-cols-1 gap-2">
-                                          {["1","2","3","4","5"].map((level) => (
+                                          {dynamicLevels.map((level) => (
                                             <div key={level} className="flex items-center gap-2">
                                               <span className="w-14 text-xs font-bold">{level}</span>
                                               <Input
@@ -1247,19 +1399,51 @@ export default function TalentStandardsPage() {
                                                   }
                                                 }))}
                                                 placeholder={`请输入等级${level}的描述`}
+                                                className="flex-1"
                                               />
+                                              <button
+                                                type="button"
+                                                onClick={() => removeLevel(level)}
+                                                disabled={dynamicLevels.length <= 1}
+                                                className={`px-2 py-1 text-xs rounded border ${
+                                                  dynamicLevels.length <= 1 
+                                                    ? 'border-gray-300 text-gray-400 cursor-not-allowed' 
+                                                    : 'border-red-500 text-red-600 hover:bg-red-50'
+                                                }`}
+                                              >
+                                                删除
+                                              </button>
                                             </div>
                                           ))}
+                                          <div className="mt-2">
+                                            <button
+                                              type="button"
+                                              onClick={addLevel}
+                                              className="flex items-center gap-1 px-3 py-2 text-xs border border-[#3C5E5C] text-[#3C5E5C] hover:bg-[#3C5E5C] hover:text-white rounded transition-colors"
+                                            >
+                                              <PlusIcon size={12} />
+                                              添加等级
+                                            </button>
                                         </div>
                                       </div>
                                     </div>
                                   </div>
-                                  <div className="flex justify-end space-x-2">
+                                  </div>
+                                  <div className="flex justify-between items-center">
+                                    <Button 
+                                      variant="outline" 
+                                      onClick={handleSaveAsDraft}
+                                      className="text-[#3C5E5C] border-[#3C5E5C] hover:bg-[#3C5E5C] hover:text-white"
+                                    >
+                                      暂存
+                                    </Button>
+                                    <div className="flex space-x-2">
                                     <Button variant="outline" onClick={() => setShowCreateAbilityDialog(false)}>取消</Button>
                                     <Button onClick={() => {
                                       handleCreateAbilityItem(ability.id);
                                       setShowCreateAbilityDialog(false);
-                                    }}>确认</Button>
+                                      }}>提交</Button>
+                                    </div>
                                   </div>
                                 </DialogContent>
                               </Dialog>
@@ -1309,7 +1493,7 @@ export default function TalentStandardsPage() {
                             <div className="space-y-4">
                               <div className="flex justify-between items-start">
                                 <h3 className="text-lg font-semibold text-gray-800">能力项详情</h3>
-                                <div className="flex items-center">
+                                <div className="flex items-center space-x-2">
                                   {isEditing ? (
                                     <button
                                       className="text-xs text-[#3C5E5C] hover:text-[#2A4A48] flex items-center px-2 py-1 border border-[#3C5E5C] rounded"
@@ -1324,6 +1508,8 @@ export default function TalentStandardsPage() {
                                       onClick={() => {
                                         setIsEditing(true);
                                         setEditingSkill({ ...selectedKnowledgeSkill });
+                                        setSelectedLevels([]); // 清空等级选择状态
+                                        setEditingDynamicLevels([]); // 清空编辑动态等级状态，让getCurrentLevels重新计算
                                       }}
                                     >
                                       <EditIcon size={12} className="mr-1" />
@@ -1402,52 +1588,92 @@ export default function TalentStandardsPage() {
                               </div>
 
                               <div className="mt-6">
-                                <label className="text-sm font-medium">能力发展路径</label>
-                                <div className="relative mt-2 p-4 bg-gray-50 rounded-md">
-                                  <div className="flex justify-between mb-2">
-                                    {["1", "2", "3", "4", "5"].map((level) => (
-                                      <div key={level} className="text-center">
-                                        <div
-                                          className={`w-8 h-8 rounded-full flex items-center justify-center mx-auto text-xs cursor-pointer ${selectedPathLevel === level ? 'bg-[#3C5E5C] text-white' : 'bg-gray-200 text-gray-700'}`}
-                                          onClick={() => setSelectedPathLevel(level)}
+                                <div className="flex justify-between items-center mb-2">
+                                  <label className="text-sm font-medium">能力等级描述</label>
+                                  <div className="flex items-center space-x-2">
+                                    {isEditing && selectedLevels.length > 0 && (
+                                      <button
+                                        className="text-xs text-red-600 hover:text-red-800 flex items-center px-2 py-1 border border-red-500 rounded"
+                                        onClick={() => {
+                                          if (confirm(`确定要删除选中的 ${selectedLevels.length} 个等级描述吗？删除的等级：${selectedLevels.join(', ')}`)) {
+                                            // 删除选中的等级描述
+                                            const updatedDescriptions = { ...editingSkill?.levelDescriptions };
+                                            console.log('删除前的描述:', updatedDescriptions);
+                                            console.log('要删除的等级:', selectedLevels);
+                                            
+                                            selectedLevels.forEach(level => {
+                                              delete updatedDescriptions[level];
+                                            });
+                                            
+                                            console.log('删除后的描述:', updatedDescriptions);
+                                            
+                                            // 同时更新动态等级列表
+                                            const remainingLevels = getCurrentLevels().filter(level => !selectedLevels.includes(level));
+                                            setEditingDynamicLevels(remainingLevels);
+                                            
+                                            setEditingSkill({
+                                              ...editingSkill!,
+                                              levelDescriptions: updatedDescriptions
+                                            });
+                                            setSelectedLevels([]);
+                                          }
+                                        }}
+                                      >
+                                        <XIcon size={12} className="mr-1" />
+                                        <span>删除</span>
+                                      </button>
+                                    )}
+                                    {isEditing && (
+                                      <button
+                                        className="text-xs text-[#3C5E5C] hover:text-[#2A4A48] flex items-center px-2 py-1 border border-[#3C5E5C] rounded"
+                                        onClick={addEditingLevel}
                                         >
-                                          {level}
+                                        <PlusIcon size={12} className="mr-1" />
+                                        <span>添加等级</span>
+                                      </button>
+                                    )}
                                         </div>
                                       </div>
-                                    ))}
-                                  </div>
-                                  <div className="absolute top-8 left-8 right-8 h-0.5 bg-gray-300 -z-10"></div>
-                                  {/* 编辑模式下，统一在下方显示输入框，宽度与背景一致 */}
+                                <div className="grid grid-cols-1 gap-2">
+                                  {getCurrentLevels().map((level) => {
+                                    return (
+                                      <div key={level} className="flex items-center gap-2">
                                   {isEditing && (
-                                    <div className="mt-4">
-                                      <Textarea
-                                        className="w-full min-h-[120px] rounded-xl border border-gray-400 px-4 py-4 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#3C5E5C] focus:border-[#3C5E5C]"
-                                        placeholder="请输入能力等级描述"
-                                        value={editingSkill?.levelDescriptions?.[selectedPathLevel] || ''}
-                                        onChange={e => {
-                                          setEditingSkill({
+                                          <input
+                                            type="checkbox"
+                                            className="h-4 w-4 rounded border-gray-300 text-[#3C5E5C] focus:ring-[#3C5E5C]"
+                                            checked={selectedLevels.includes(level)}
+                                            onChange={(e) => {
+                                              if (e.target.checked) {
+                                                setSelectedLevels([...selectedLevels, level]);
+                                              } else {
+                                                setSelectedLevels(selectedLevels.filter(l => l !== level));
+                                              }
+                                            }}
+                                          />
+                                        )}
+                                        <span className="w-14 text-xs font-bold">{level}</span>
+                                        {isEditing ? (
+                                          <Input
+                                            value={editingSkill?.levelDescriptions?.[level] || ''}
+                                            onChange={e => setEditingSkill({
                                             ...editingSkill!,
                                             levelDescriptions: {
                                               ...editingSkill?.levelDescriptions,
-                                              [selectedPathLevel]: e.target.value
+                                                [level]: e.target.value
                                             }
-                                          });
-                                        }}
-                                      />
-                                    </div>
-                                  )}
-                                  {/* 仅非编辑模式下展示能力等级描述 */}
-                                  {!isEditing && selectedKnowledgeSkill && selectedKnowledgeSkill.levelDescriptions && (
-                                    <div className="mt-4 space-y-2">
-                                      <label className="text-sm font-medium">能力等级描述</label>
-                                      <div className="flex items-center gap-2">
-                                        <span className="w-14 text-xs font-bold text-[#3C5E5C]">{selectedPathLevel}</span>
-                                        <span className="flex-1 text-sm text-[#3C5E5C]">
-                                          {selectedKnowledgeSkill.levelDescriptions?.[selectedPathLevel] || '（未填写）'}
+                                            })}
+                                            placeholder={`请输入等级${level}的描述`}
+                                            className="flex-1"
+                                          />
+                                        ) : (
+                                          <span className={`flex-1 text-sm ${selectedKnowledgeSkill?.levelDescriptions?.[level] ? 'text-gray-700' : 'text-gray-400'}`}>
+                                            {selectedKnowledgeSkill?.levelDescriptions?.[level] || '（未填写）'}
                                         </span>
-                                      </div>
-                                    </div>
                                   )}
+                                      </div>
+                                    );
+                                  })}
                                 </div>
                               </div>
                             </div>
@@ -1564,7 +1790,34 @@ export default function TalentStandardsPage() {
                               <button
                                 className="text-xs text-[#3C5E5C] hover:text-[#2A4A48] flex items-center px-2 py-1 border border-[#3C5E5C] rounded"
                                 onClick={() => {
-                                  if (currentQualityTab === 'professional') setShowCreateProfessionalDialog(true);
+                                  if (currentQualityTab === 'professional') {
+                                    // 重置专业素质动态等级状态
+                                    setProfessionalDynamicLevels(["1", "2", "3", "4", "5"]);
+                                    setSelectedProfessionalLevels([]);
+                                    // 重置专业素质表单状态
+                                    setNewProfessionalAbility({
+                                      name: "",
+                                      description: "",
+                                      type: "素质类",
+                                      tag: "专业素质",
+                                      code: "",
+                                      level: "",
+                                      positions: "",
+                                      level_description: "",
+                                      related_knowledge: "",
+                                      related_skills: "",
+                                      job_sequences: [],
+                                      searchSequence: "",
+                                      levelDescriptions: {
+                                        "1": '',
+                                        "2": '',
+                                        "3": '',
+                                        "4": '',
+                                        "5": ''
+                                      }
+                                    });
+                                    setShowCreateProfessionalDialog(true);
+                                  }
                                   if (currentQualityTab === 'leadership') setShowCreateLeadershipDialog(true);
                                   if (currentQualityTab === 'general') setShowCreateGeneralDialog(true);
                                 }}
@@ -2049,11 +2302,11 @@ export default function TalentStandardsPage() {
 
       {/* 专业素质创建弹窗 */}
       <Dialog open={showCreateProfessionalDialog} onOpenChange={setShowCreateProfessionalDialog}>
-        <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogContent className="sm:max-w-[800px] max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>创建专业素质</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-4 overflow-y-auto pr-2">
+          <div className="space-y-4 py-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium">素质编码</label>
@@ -2074,6 +2327,17 @@ export default function TalentStandardsPage() {
                 />
               </div>
             </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">素质类型</label>
+                <Input
+                  name="type"
+                  value="专业素质"
+                  disabled
+                  className="bg-gray-50"
+                />
+              </div>
+            </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">适用岗位</label>
               <Input
@@ -2090,7 +2354,7 @@ export default function TalentStandardsPage() {
                 value={newProfessionalAbility.level_description || ""}
                 onChange={handleProfessionalAbilityChange}
                 placeholder="如 L4：能设计跨区域税收筹划方案"
-                className="min-h-[80px]"
+                className="min-h-[100px]"
               />
             </div>
             <div className="space-y-2">
@@ -2180,11 +2444,12 @@ export default function TalentStandardsPage() {
                 ))}
               </div>
             </div>
-            {/* 能力等级描述输入 */}
+            {/* 能力等级描述输入 - 使用动态等级管理 */}
             <div className="space-y-2">
-              <label className="text-sm font-medium">能力等级描述</label>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">能力等级描述</label>
               <div className="grid grid-cols-1 gap-2">
-                {["1","2","3","4","5"].map((level) => (
+                  {professionalDynamicLevels.map((level) => (
                   <div key={level} className="flex items-center gap-2">
                     <span className="w-14 text-xs font-bold">{level}</span>
                     <Input
@@ -2197,15 +2462,48 @@ export default function TalentStandardsPage() {
                         }
                       }))}
                       placeholder={`请输入等级${level}的描述`}
+                        className="flex-1"
                     />
+                      <button
+                        type="button"
+                        onClick={() => removeProfessionalLevel(level)}
+                        disabled={professionalDynamicLevels.length <= 1}
+                        className={`px-2 py-1 text-xs rounded border ${
+                          professionalDynamicLevels.length <= 1 
+                            ? 'border-gray-300 text-gray-400 cursor-not-allowed' 
+                            : 'border-red-500 text-red-600 hover:bg-red-50'
+                        }`}
+                      >
+                        删除
+                      </button>
                   </div>
                 ))}
               </div>
+                <div className="flex justify-center mt-4">
+                    <button
+                      type="button"
+                      onClick={addProfessionalLevel}
+                      className="flex items-center gap-1 px-3 py-2 text-xs border border-[#3C5E5C] text-[#3C5E5C] hover:bg-[#3C5E5C] hover:text-white rounded transition-colors"
+                    >
+                      <PlusIcon size={12} />
+                      添加等级
+                    </button>
+                </div>
             </div>
           </div>
-          <div className="flex justify-end space-x-2 pt-2 border-t border-gray-100">
+          </div>
+          <div className="flex justify-between items-center">
+            <Button 
+              variant="outline" 
+              onClick={handleProfessionalSaveAsDraft}
+              className="text-[#3C5E5C] border-[#3C5E5C] hover:bg-[#3C5E5C] hover:text-white"
+            >
+              暂存
+            </Button>
+            <div className="flex space-x-2">
             <Button variant="outline" onClick={() => setShowCreateProfessionalDialog(false)}>取消</Button>
-            <Button onClick={handleCreateProfessionalAbility}>确认</Button>
+            <Button onClick={handleCreateProfessionalAbility}>提交</Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
