@@ -1,16 +1,46 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
-import { SearchIcon, BellIcon, MenuIcon, PlusIcon } from "@/components/icons/index";
+import { SearchIcon, BellIcon, MenuIcon, PlusIcon, LogOutIcon } from "@/components/icons/index";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../../../components/ui/dropdown-menu";
+import { useAuth } from '@/contexts/AuthContext';
+import { useRouter } from 'next/navigation';
 
 /**
  * 页面头部组件
  * @return {React.ReactElement} 头部组件
  */
 export default function Header() {
+  const { state, logout, getRoleDisplayName } = useAuth();
+  const router = useRouter();
+
+  const handleLogout = () => {
+    logout();
+    router.push('/');
+  };
+
+  const getUserInitials = (name: string) => {
+    return name.slice(-2); // 取姓名的后两个字符
+  };
+
+  const getRoleColor = (role: string) => {
+    switch (role) {
+      case 'employee':
+        return 'bg-blue-500';
+      case 'coe':
+        return 'bg-purple-500';
+      case 'hrbp':
+        return 'bg-green-500';
+      case 'system_leader':
+        return 'bg-orange-500';
+      default:
+        return 'bg-gray-500';
+    }
+  };
+
   return (
     <div className="bg-[#FFFFFF] text-[#1D212C]">
       <div className="flex items-center justify-between px-4 py-2">
@@ -45,10 +75,40 @@ export default function Header() {
             </span>
           </div>
 
-          <Avatar className="h-8 w-8">
-            <AvatarImage src="/avatar.png" />
-            <AvatarFallback className="bg-blue-500 text-white text-xs">用户</AvatarFallback>
-          </Avatar>
+          {state.user && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <div className="flex items-center gap-x-2 cursor-pointer hover:bg-gray-50 rounded-lg px-2 py-1">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={state.user.avatar} />
+                    <AvatarFallback className={`${getRoleColor(state.user.role)} text-white text-xs`}>
+                      {getUserInitials(state.user.name)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="hidden md:block text-sm">
+                    <div className="font-medium">{state.user.name}</div>
+                    <div className="text-gray-500 text-xs">{getRoleDisplayName(state.user.role)}</div>
+                  </div>
+                </div>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuLabel>
+                  <div>
+                    <div className="font-medium">{state.user.name}</div>
+                    <div className="text-gray-500 text-xs font-normal">
+                      {getRoleDisplayName(state.user.role)}
+                      {state.user.system && ` - ${state.user.system}`}
+                    </div>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout}>
+                  <LogOutIcon className="h-4 w-4 mr-2" />
+                  退出登录
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
       </div>
       <div className="h-px bg-gray-200 w-full"></div>

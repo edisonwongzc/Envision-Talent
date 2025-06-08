@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import MatchingPage from "./matching-page";
 import HorizontalComparisonModal from "./horizontal-comparison-modal";
 import { useRouter, useSearchParams } from 'next/navigation';
+import { usePermissions } from '@/hooks/usePermissions';
 import {
   VisionSpiritContent,
   BasicInfoContent,
@@ -84,6 +85,13 @@ interface PositionItem {
 export default function TalentStandardsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { 
+    canCreateStandards, 
+    canEditStandards, 
+    canDeleteStandards, 
+    currentUser,
+    getAccessibleSystems 
+  } = usePermissions();
   const [showPositions, setShowPositions] = useState(false);
   const [selectedPosition, setSelectedPosition] = useState("");
   const [showEmployeeList, setShowEmployeeList] = useState(false);
@@ -1199,6 +1207,35 @@ export default function TalentStandardsPage() {
       <div className="mb-1">
         <h1 className="text-[18px] font-bold text-gray-800">人才标准</h1>
         <p className="text-sm text-gray-500">管理能力库、岗位模型和人才履历</p>
+        
+        {/* 权限提示信息 */}
+        {currentUser && (
+          <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <div className={`w-2 h-2 rounded-full ${
+                  currentUser.role === 'employee' ? 'bg-blue-500' :
+                  currentUser.role === 'coe' ? 'bg-purple-500' :
+                  currentUser.role === 'hrbp' ? 'bg-green-500' :
+                  currentUser.role === 'system_leader' ? 'bg-orange-500' : 'bg-gray-500'
+                }`}></div>
+                <span className="text-sm font-medium text-blue-800">
+                  当前角色：{currentUser.role === 'employee' ? '普通员工' :
+                           currentUser.role === 'coe' ? '干部COE' :
+                           currentUser.role === 'hrbp' ? '体系HRBP' :
+                           currentUser.role === 'system_leader' ? '体系负责人' : currentUser.role}
+                  {currentUser.system && ` - ${currentUser.system}`}
+                </span>
+              </div>
+              <div className="text-xs text-blue-600">
+                {currentUser.role === 'employee' && '可查看所有标准，用于学习参考'}
+                {currentUser.role === 'coe' && '可查看、创建、编辑、删除所有标准'}
+                {currentUser.role === 'hrbp' && '可查看所有标准，可创建和编辑标准'}
+                {currentUser.role === 'system_leader' && '可查看所有标准，可创建和编辑标准'}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       <Tabs value={mainTab} onValueChange={setMainTab} defaultValue="ability" className="w-full mt-8">
@@ -1282,7 +1319,7 @@ export default function TalentStandardsPage() {
                               <span className="text-xs text-gray-500 ml-2">全选</span>
                             </div>
                             <div className="flex items-center space-x-2">
-                              {selectedKnowledgeItems.length > 0 && (
+                              {selectedKnowledgeItems.length > 0 && canDeleteStandards() && (
                                 <button
                                   className="text-xs text-red-600 hover:text-red-800 flex items-center px-2 py-1 border border-red-500 rounded"
                                   onClick={() => handleBatchDelete(ability)}
@@ -1291,41 +1328,42 @@ export default function TalentStandardsPage() {
                                   <span>删除</span>
                                 </button>
                               )}
-                              <Dialog
-                                open={showCreateAbilityDialog && newAbility.type === ability.type}
-                                onOpenChange={(open) => {
-                                  setShowCreateAbilityDialog(open);
-                                  if (open) setNewAbility({ ...newAbility, type: ability.type });
-                                }}
-                              >
-                                <DialogTrigger asChild>
-                                  <button 
-                                    className="text-xs text-[#3C5E5C] hover:text-[#2A4A48] flex items-center px-2 py-1 border border-[#3C5E5C] rounded"
-                                    onClick={() => {
-                                      // 重置动态等级状态
-                                      setDynamicLevels(["1", "2", "3", "4", "5"]);
-                                      // 重置新能力状态
-                                      setNewAbility({
-                                        name: "",
-                                        description: "",
-                                        type: ability.type,
-                                        tag: "",
-                                        code: "",
-                                        positions: "",
-                                        levelDescriptions: {
-                                          "1": '',
-                                          "2": '',
-                                          "3": '',
-                                          "4": '',
-                                          "5": ''
-                                        }
-                                      });
-                                    }}
-                                  >
-                                    <PlusIcon size={12} className="mr-1" />
-                                    <span>添加</span>
-                                  </button>
-                                </DialogTrigger>
+                              {canCreateStandards() && (
+                                <Dialog
+                                  open={showCreateAbilityDialog && newAbility.type === ability.type}
+                                  onOpenChange={(open) => {
+                                    setShowCreateAbilityDialog(open);
+                                    if (open) setNewAbility({ ...newAbility, type: ability.type });
+                                  }}
+                                >
+                                  <DialogTrigger asChild>
+                                    <button 
+                                      className="text-xs text-[#3C5E5C] hover:text-[#2A4A48] flex items-center px-2 py-1 border border-[#3C5E5C] rounded"
+                                      onClick={() => {
+                                        // 重置动态等级状态
+                                        setDynamicLevels(["1", "2", "3", "4", "5"]);
+                                        // 重置新能力状态
+                                        setNewAbility({
+                                          name: "",
+                                          description: "",
+                                          type: ability.type,
+                                          tag: "",
+                                          code: "",
+                                          positions: "",
+                                          levelDescriptions: {
+                                            "1": '',
+                                            "2": '',
+                                            "3": '',
+                                            "4": '',
+                                            "5": ''
+                                          }
+                                        });
+                                      }}
+                                    >
+                                      <PlusIcon size={12} className="mr-1" />
+                                      <span>添加</span>
+                                    </button>
+                                  </DialogTrigger>
                                 <DialogContent className="sm:max-w-[800px] max-h-[80vh] overflow-y-auto">
                                   <DialogHeader>
                                     <DialogTitle>创建{ability.type}能力项</DialogTitle>
@@ -1447,6 +1485,7 @@ export default function TalentStandardsPage() {
                                   </div>
                                 </DialogContent>
                               </Dialog>
+                              )}
                             </div>
                           </div>
 
@@ -1502,7 +1541,7 @@ export default function TalentStandardsPage() {
                                       <CheckIcon size={12} className="mr-1" />
                                       <span>完成</span>
                                     </button>
-                                  ) : (
+                                  ) : canEditStandards() ? (
                                     <button
                                       className="text-xs text-[#3C5E5C] hover:text-[#2A4A48] flex items-center px-2 py-1 border border-[#3C5E5C] rounded"
                                       onClick={() => {
@@ -1515,7 +1554,7 @@ export default function TalentStandardsPage() {
                                       <EditIcon size={12} className="mr-1" />
                                       <span>编辑</span>
                                     </button>
-                                  )}
+                                  ) : null}
                                 </div>
                               </div>
 
@@ -2446,8 +2485,8 @@ export default function TalentStandardsPage() {
             </div>
             {/* 能力等级描述输入 - 使用动态等级管理 */}
             <div className="space-y-2">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">能力等级描述</label>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">能力等级描述</label>
               <div className="grid grid-cols-1 gap-2">
                   {professionalDynamicLevels.map((level) => (
                   <div key={level} className="flex items-center gap-2">
@@ -2488,8 +2527,8 @@ export default function TalentStandardsPage() {
                       <PlusIcon size={12} />
                       添加等级
                     </button>
-                </div>
             </div>
+          </div>
           </div>
           </div>
           <div className="flex justify-between items-center">

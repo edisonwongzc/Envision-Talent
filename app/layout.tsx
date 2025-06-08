@@ -4,6 +4,7 @@ import './globals.css';
 import { ReactNode } from 'react';
 import { UserProvider } from '@/contexts/UserContext';
 import { AppProvider } from '@/contexts/AppContext';
+import { AuthProvider } from '@/contexts/AuthContext';
 
 /**
  * 根布局组件
@@ -18,11 +19,13 @@ export default function RootLayout({
   return (
     <html lang="zh">
       <body>
-        <AppProvider>
-          <UserProvider>
-            {children}
-          </UserProvider>
-        </AppProvider>
+        <AuthProvider>
+          <AppProvider>
+            <UserProvider>
+              {children}
+            </UserProvider>
+          </AppProvider>
+        </AuthProvider>
       </body>
     </html>
   );

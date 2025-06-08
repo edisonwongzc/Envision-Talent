@@ -596,7 +596,7 @@ export default function QualificationManagementPage() {
       }
     });
   };
-  
+
   // 添加筛选选项
   const classOptions = ["技术类", "产品类", "管理类", "设计类", "市场类"];
   const subClassOptions: Record<string, string[]> = {
@@ -1312,12 +1312,12 @@ export default function QualificationManagementPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
                 </div>
-                  
+                
                   <Select value={selectedSystem} onValueChange={setSelectedSystem}>
-                    <SelectTrigger className="w-auto h-9 text-sm border-gray-200 px-3 py-1">
+                  <SelectTrigger className="w-auto h-9 text-sm border-gray-200 px-3 py-1">
                       <SelectValue placeholder="体系" className="text-sm" />
-                    </SelectTrigger>
-                    <SelectContent>
+                  </SelectTrigger>
+                  <SelectContent>
                       <SelectItem value="all" className="text-sm">体系</SelectItem>
                       {systemOptions.map((system) => (
                         <SelectItem key={system} value={system} className="text-sm">

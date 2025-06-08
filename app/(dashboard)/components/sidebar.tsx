@@ -59,6 +59,11 @@ export default function Sidebar() {
       label: "人才培育",
       href: "/talent-development",
     },
+    {
+      icon: FilterIcon,
+      label: "权限演示",
+      href: "/permission-demo",
+    },
   ];
 
   return (
@@ -69,7 +74,7 @@ export default function Sidebar() {
       <div className="flex-1 px-2 py-2">
         <nav className="space-y-1.5">
           {routes.map((route) => {
-            const isActive = pathname.includes(route.href);
+            const isActive = pathname?.includes(route.href) || false;
             return (
               <Link
                 key={route.href}
