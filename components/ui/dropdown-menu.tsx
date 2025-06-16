@@ -50,10 +50,28 @@ export function DropdownMenu({ children }: DropdownMenuProps) {
 export function DropdownMenuTrigger({ children, asChild = false }: DropdownMenuTriggerProps) {
   const { isOpen, setIsOpen } = React.useContext(DropdownMenuContext);
 
+  const handleClick = () => setIsOpen(!isOpen);
+
+  if (asChild) {
+    // 当asChild为true时，将onClick事件克隆到子元素上
+    const childElement = children as React.ReactElement<any>;
+    return React.cloneElement(childElement, {
+      ...childElement.props,
+      onClick: (e: React.MouseEvent) => {
+        // 调用原有的onClick（如果存在）
+        if (childElement.props.onClick) {
+          childElement.props.onClick(e);
+        }
+        // 调用我们的处理函数
+        handleClick();
+      }
+    });
+  }
+
   return (
     <button
-      onClick={() => setIsOpen(!isOpen)}
-      className={asChild ? '' : 'outline-none'}
+      onClick={handleClick}
+      className="outline-none"
     >
       {children}
     </button>

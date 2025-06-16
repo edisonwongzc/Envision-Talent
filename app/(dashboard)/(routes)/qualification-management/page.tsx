@@ -12,6 +12,8 @@ import { Check as CheckIcon } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import * as React from "react";
 import { cn } from "@/lib/utils";
+import { useAuth } from '@/contexts/AuthContext';
+import { usePermissions } from '@/hooks/usePermissions';
 
 // 临时内联Badge组件实现
 interface BadgeProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -169,6 +171,10 @@ interface RadarTarget {
 // };
 
 export default function QualificationManagementPage() {
+  // 权限控制
+  const { state } = useAuth();
+  const { filterEmployeesByPermission, canOnlyViewOwnData } = usePermissions();
+  
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedClass, setSelectedClass] = useState("all");
   const [selectedSubClass, setSelectedSubClass] = useState("all");
@@ -250,7 +256,7 @@ export default function QualificationManagementPage() {
   };
   
   // 模拟员工详情数据
-  const employeeData = [
+  const allEmployeeData = [
     {
       id: "EMP001",
       name: "李十三",
@@ -341,14 +347,45 @@ export default function QualificationManagementPage() {
       ],
       knowledgeSkillScore: 78,
       keyAbilityScore: 80
+    },
+    {
+      id: "EMP002",
+      name: "张三",
+      avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=300&auto=format&fit=crop&q=60",
+      sequence: "技术序列",
+      category: "技术类",
+      subClass: "后端技术",
+      position: "工程师",
+      role: "后端开发",
+      system: "研发体系",
+      department: "研发部",
+      team: "核心后端团队",
+      engineeringDirector: "王大山",
+      directManager: "张经理",
+      teamLeader: "赵组长",
+      challengeLevels: ["13L", "13M", "13H"],
+      performanceResults: ["B", "B+", "A"],
+      visionScores: [4.0, 4.2, 4.3],
+      currentLevel: "P3",
+      certificationDate: "2021-08-15",
+      processStatus: undefined, // 无流程状态，显示发起评审流程按钮
+      reviewHistory: [
+        { date: "2021-08-15", level: "P3", result: "通过", evaluator: "技术评审委员会" },
+        { date: "2020-03-10", level: "P2", result: "通过", evaluator: "部门评审小组" }
+      ],
+      knowledgeSkillScore: 82,
+      keyAbilityScore: 85
     }
   ];
 
+  // 根据权限过滤员工数据
+  const employeeData = filterEmployeesByPermission(allEmployeeData);
+
   // 模拟流程数据
-  const processList = [
+  const allProcessList = [
     {
       id: "PROC001",
-      name: "李十三、2023-05-01、P6、T", // 姓名、年月日、职级、认证类型
+      name: "李十三申请技术序列/P6_20230501", // 申请人申请岗位序列/申请职级_创建时间
       status: "进行中",
       applicantName: "李十三",
       applicantId: "EMP001",
@@ -366,7 +403,7 @@ export default function QualificationManagementPage() {
     },
     {
       id: "PROC002",
-      name: "赵六、2023-04-10、P5、P",
+      name: "赵六申请产品序列/P5_20230410",
       status: "已完成",
       applicantName: "赵六",
       applicantId: "EMP031",
@@ -384,7 +421,7 @@ export default function QualificationManagementPage() {
     },
     {
       id: "PROC003",
-      name: "吴十、2023-06-15、P4、T",
+      name: "吴十申请技术序列/P4_20230615",
       status: "进行中",
       applicantName: "吴十",
       applicantId: "EMP015",
@@ -402,25 +439,25 @@ export default function QualificationManagementPage() {
     },
     {
       id: "PROC004",
-      name: "张四、2023-06-20、P5、M",
-      status: "计划中",
-      applicantName: "张四",
-      applicantId: "EMP021",
+      name: "张三申请技术序列/P4_20230620",
+      status: "进行中",
+      applicantName: "张三",
+      applicantId: "EMP002",
       createDate: "2023-06-20",
-      class: "管理类",
-      subClass: "项目管理",
-      sequence: "管理序列",
-      direction: "项目管理",
-      position: "项目经理",
-      role: "项目管理",
-      system: "管理体系",
-      department: "项目管理部",
-      team: "项目管理团队",
-      level: "P5"
+      class: "技术类",
+      subClass: "后端技术",
+      sequence: "技术序列",
+      direction: "后端开发",
+      position: "工程师",
+      role: "开发",
+      system: "研发体系",
+      department: "研发部",
+      team: "核心后端团队",
+      level: "P4"
     },
     {
       id: "PROC005",
-      name: "王五、2023-05-15、P6、D",
+      name: "王五申请设计序列/P6_20230515",
       status: "进行中",
       applicantName: "王五",
       applicantId: "EMP025",
@@ -437,6 +474,16 @@ export default function QualificationManagementPage() {
       level: "P6"
     }
   ];
+
+  // 根据权限过滤流程数据 - 员工只能看到自己的流程
+  const processList = useMemo(() => {
+    if (canOnlyViewOwnData() && state.user) {
+      // 统一使用张三的员工ID进行模拟
+      const currentUserEmployeeId = 'EMP002'; // 张三的员工ID
+      return allProcessList.filter(process => process.applicantId === currentUserEmployeeId);
+    }
+    return allProcessList;
+  }, [allProcessList, state.user, canOnlyViewOwnData]);
 
   const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
@@ -559,15 +606,19 @@ export default function QualificationManagementPage() {
 
   // 处理确认发起评审
   const handleConfirmReview = () => {
-    // 模拟发起评审流程
-    setReviewSuccess(true);
-    
-    // 3秒后关闭确认对话框
-    setTimeout(() => {
-      setReviewSuccess(false);
+    // 关闭确认对话框
       setShowReviewConfirmDialog(false);
       setShowReviewSelectionMode(false);
-    }, 3000);
+    
+    // 如果有选中的员工，直接显示第一个员工的详情
+    if (employeesToReview.length > 0) {
+      const firstEmployeeId = employeesToReview[0];
+      const employee = employeeData.find(emp => emp.id === firstEmployeeId);
+      if (employee) {
+        setSelectedEmployee(employee);
+        setShowEmployeeDetail(true);
+      }
+    }
   };
 
   // 添加查看标准详情的状态
@@ -1037,6 +1088,18 @@ export default function QualificationManagementPage() {
   // 添加部门筛选状态
   const [selectedDepartment, setSelectedDepartment] = useState<string>("all");
 
+  // 自定义知识技能能力项相关状态
+  const [showCreateCustomItemDialog, setShowCreateCustomItemDialog] = useState(false);
+  const [customItemType, setCustomItemType] = useState<'knowledge' | 'ability' | 'feedback'>('knowledge');
+  const [customItemForm, setCustomItemForm] = useState({
+    code: '',
+    name: '',
+    description: '',
+    level: '',
+    positions: '',
+    category: ''
+  });
+
   // 模拟标准列表数据
   const standardsList = [
     {
@@ -1166,8 +1229,180 @@ export default function QualificationManagementPage() {
     setShowSingleReviewConfirm(false);
     // 注意：不清空selectedEmployeeForReview，因为流程详情页面需要使用
     
+          // 实际向员工发送通知
+      if (selectedEmployeeForReview) {
+        console.log(`向员工 ${selectedEmployeeForReview.name} 发送认证流程评审通知`);
+        
+        // 确保员工ID是有效的
+        const employeeId = selectedEmployeeForReview.id || 'EMP002';
+        let relatedId = `CERT_APP_${employeeId}`;
+        
+        // 验证生成的relatedId格式
+        if (!relatedId.match(/^CERT_APP_EMP\d+$/)) {
+          console.warn(`Invalid relatedId format: ${relatedId}, using fallback`);
+          relatedId = 'CERT_APP_EMP002';
+        }
+        
+        // 创建新消息并添加到消息系统
+        const newMessage = {
+          id: `MSG_${Date.now()}`,
+          title: "认证流程评审通知",
+          content: `您的任职资格认证申请已开始评审流程，请及时填写并提交认证申请表。申请职级：${selectedEmployeeForReview.targetLevel || 'P4'}，申请序列：技术序列。`,
+          type: "certification" as const,
+          isRead: false,
+          timestamp: new Date().toLocaleString('zh-CN', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+          }).replace(/\//g, '-'),
+          sender: "HRBP张丽",
+          relatedId: relatedId,
+          recipientId: getEmployeeUserId(employeeId)
+        };
+      
+      // 将消息保存到localStorage，模拟后端消息存储
+      const existingMessages = JSON.parse(localStorage.getItem('hrMessages') || '[]');
+      existingMessages.push(newMessage);
+      localStorage.setItem('hrMessages', JSON.stringify(existingMessages));
+      
+      // 显示发送成功提示
+      setSingleReviewSuccess(true);
+      setTimeout(() => {
+        setSingleReviewSuccess(false);
+      }, 3000);
+    }
+    
     // 直接进入流程详情页面
     setShowProcessDetail(true);
+  };
+
+  // 获取员工对应的用户ID（用于消息推送）
+  const getEmployeeUserId = (employeeId: string): string => {
+    // 根据员工ID映射到用户ID
+    const employeeUserMap: Record<string, string> = {
+      'EMP001': '1', // 李十三
+      'EMP002': '1', // 张三 - 对应AuthContext中的employee用户ID
+      'EMP015': '15', // 吴十
+      'EMP031': '31', // 赵六
+    };
+    
+    return employeeUserMap[employeeId] || '1'; // 默认返回张三的用户ID
+  };
+
+  // 审批相关状态
+  const [showApplicationDetail, setShowApplicationDetail] = useState(false);
+  const [selectedApplication, setSelectedApplication] = useState<any>(null);
+  const [approvalComment, setApprovalComment] = useState("");
+  const [showApprovalDialog, setShowApprovalDialog] = useState(false);
+  const [approvalAction, setApprovalAction] = useState<'approve' | 'reject'>('approve');
+
+  // 查看认证申请详情
+  const viewApplicationDetail = (applicationId: string) => {
+    // 模拟获取申请详情
+    const mockApplication = {
+      id: applicationId,
+      applicantName: "张三",
+      applicantId: "EMP002",
+      department: "研发部",
+      position: "工程师",
+      currentLevel: "P3",
+      applyLevel: "P4",
+      applySequence: "技术序列",
+      applyDirection: "后端开发",
+      status: "submitted",
+      submitTime: "2024-01-15 16:30",
+      basicInfo: {
+        phone: "13800138000",
+        email: "zhangsan@company.com",
+        joinDate: "2022-01-15",
+        education: "本科",
+        major: "计算机科学与技术"
+      },
+      applicationReason: "我在当前岗位工作了2年，具备了P4级别的技术能力，希望能够晋升到P4级别。",
+      developmentPlan: "未来希望在后端架构设计方面深入发展，成为技术专家。"
+    };
+    
+    setSelectedApplication(mockApplication);
+    setShowApplicationDetail(true);
+  };
+
+  // 处理审批
+  const handleApproval = (action: 'approve' | 'reject') => {
+    setApprovalAction(action);
+    setShowApprovalDialog(true);
+  };
+
+  // 确认审批
+  const confirmApproval = () => {
+    if (!selectedApplication) return;
+    
+    const newMessage = {
+      id: `MSG_${Date.now()}`,
+      title: approvalAction === 'approve' ? "认证申请已通过初审" : "认证申请被驳回",
+      content: approvalAction === 'approve' 
+        ? `您的任职资格认证申请已通过体系HRBP初审，正在流转至体系负责人进行最终审批。${approvalComment ? `审批意见：${approvalComment}` : ''}`
+        : `您的任职资格认证申请被体系HRBP驳回，请查看驳回原因并重新提交。驳回原因：${approvalComment}`,
+      type: "certification" as const,
+      isRead: false,
+      timestamp: new Date().toLocaleString('zh-CN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      }).replace(/\//g, '-'),
+      sender: "体系HRBP",
+      relatedId: selectedApplication.id,
+      recipientId: "1" // 员工用户ID
+    };
+    
+    // 如果是通过，还要发送消息给体系负责人
+    if (approvalAction === 'approve') {
+      const leaderMessage = {
+        id: `MSG_${Date.now() + 1}`,
+        title: "认证申请待终审",
+        content: `员工${selectedApplication.applicantName}的任职资格认证申请已通过体系HRBP初审，请进行最终审批。申请职级：${selectedApplication.applyLevel}，申请序列：${selectedApplication.applySequence}。`,
+        type: "certification" as const,
+        isRead: false,
+        timestamp: new Date().toLocaleString('zh-CN', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit'
+        }).replace(/\//g, '-'),
+        sender: "体系HRBP",
+        relatedId: selectedApplication.id,
+        recipientId: "4" // 体系负责人用户ID
+      };
+      
+      const existingMessages = JSON.parse(localStorage.getItem('hrMessages') || '[]');
+      existingMessages.push(newMessage, leaderMessage);
+      localStorage.setItem('hrMessages', JSON.stringify(existingMessages));
+    } else {
+      // 驳回只发给员工
+      const existingMessages = JSON.parse(localStorage.getItem('hrMessages') || '[]');
+      existingMessages.push(newMessage);
+      localStorage.setItem('hrMessages', JSON.stringify(existingMessages));
+    }
+    
+    // 更新申请状态
+    const existingApplications = JSON.parse(localStorage.getItem('certificationApplications') || '{}');
+    existingApplications[selectedApplication.id] = {
+      ...selectedApplication,
+      status: approvalAction === 'approve' ? 'reviewing' : 'rejected',
+      approvalComment: approvalComment,
+      approvalTime: new Date().toLocaleString('zh-CN')
+    };
+    localStorage.setItem('certificationApplications', JSON.stringify(existingApplications));
+    
+    setShowApprovalDialog(false);
+    setShowApplicationDetail(false);
+    setApprovalComment("");
+    
+    alert(approvalAction === 'approve' ? "申请已通过，已流转至体系负责人" : "申请已驳回，员工将收到通知");
   };
 
   // 处理流程列表批量发起评审
@@ -1216,6 +1451,55 @@ export default function QualificationManagementPage() {
       setSelectedProcess("流程详情");
       setShowProcessDetail(true);
     }
+  };
+
+  // 自定义项目处理函数
+  const openCreateCustomDialog = (type: 'knowledge' | 'ability' | 'feedback') => {
+    setCustomItemType(type);
+    setCustomItemForm({
+      code: '',
+      name: '',
+      description: '',
+      level: '',
+      positions: '',
+      category: ''
+    });
+    setShowAddStandardDialog(false);
+    setShowCreateCustomItemDialog(true);
+  };
+
+  const handleCustomItemFormChange = (field: string, value: string) => {
+    setCustomItemForm(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleCreateCustomItem = () => {
+    if (!customItemForm.name) {
+      alert("请填写项目名称");
+      return;
+    }
+    
+    // 这里可以添加创建逻辑，现在只是模拟
+    console.log(`创建自定义${customItemType}项:`, customItemForm);
+    
+    // 关闭弹窗并重置表单
+    setShowCreateCustomItemDialog(false);
+    setCustomItemForm({
+      code: '',
+      name: '',
+      description: '',
+      level: '',
+      positions: '',
+      category: ''
+    });
+    
+    // 重新打开添加标准弹窗
+    setShowAddStandardDialog(true);
+    
+    // 显示成功提示
+    alert("自定义项目创建成功！");
   };
 
   // 雷达图相关状态
@@ -1379,8 +1663,8 @@ export default function QualificationManagementPage() {
                       {selectedClass && selectedClass !== "all" && directionOptions[selectedClass]?.map((direction) => (
                         <SelectItem key={direction} value={direction} className="text-sm">
                           {direction}
-                      </SelectItem>
-                    ))}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
 
@@ -2699,7 +2983,7 @@ export default function QualificationManagementPage() {
                                 );
                               })}
                               
-                              {/* 员工数据多边形 */}
+                              {/* 员工数据多边形 - 深蓝色 */}
                               <polygon
                                 points={[
                                   [0, 72, 144, 216, 288].map((angle, index) => {
@@ -2710,12 +2994,12 @@ export default function QualificationManagementPage() {
                                     return `${x},${y}`;
                                   }).join(' ')
                                 ][0]}
-                                fill="rgba(59, 94, 92, 0.3)"
-                                stroke="#3C5E5C"
+                                fill="rgba(69, 141, 207, 0.3)"
+                                stroke="#458dcf"
                                 strokeWidth={2}
                               />
                               
-                              {/* 目标标准多边形 - 浅绿色 */}
+                              {/* 目标标准多边形 - 浅蓝色 */}
                               <polygon
                                 points={[
                                   [0, 72, 144, 216, 288].map((angle, index) => {
@@ -2726,12 +3010,12 @@ export default function QualificationManagementPage() {
                                     return `${x},${y}`;
                                   }).join(' ')
                                 ][0]}
-                                fill="rgba(34, 197, 94, 0.3)"
-                                stroke="#22c55e"
+                                fill="rgba(161, 205, 241, 0.3)"
+                                stroke="#a1cdf1"
                                 strokeWidth={2}
                               />
                               
-                              {/* 员工数据点 */}
+                              {/* 员工数据点 - 深蓝色 */}
                               {[0, 72, 144, 216, 288].map((angle, index) => {
                                 const values = [10, 14, 16, 12, 15];
                                 const radius = (values[index] / 20) * 250;
@@ -2743,12 +3027,12 @@ export default function QualificationManagementPage() {
                                     cx={x}
                                     cy={y}
                                     r={4}
-                                    fill="#3C5E5C"
+                                    fill="#458dcf"
                                   />
                                 );
                               })}
                               
-                              {/* 目标数据点 */}
+                              {/* 目标数据点 - 浅蓝色 */}
                               {[0, 72, 144, 216, 288].map((angle, index) => {
                                 const values = [18, 16, 17, 18, 19];
                                 const radius = (values[index] / 20) * 250;
@@ -2760,7 +3044,7 @@ export default function QualificationManagementPage() {
                                     cx={x}
                                     cy={y}
                                     r={4}
-                                    fill="#22c55e"
+                                    fill="#a1cdf1"
                                   />
                                 );
                               })}
@@ -2815,11 +3099,11 @@ export default function QualificationManagementPage() {
                         {/* 图例 */}
                         <div className="flex items-center space-x-6 mt-4">
                           <div className="flex items-center space-x-2">
-                            <div className="w-4 h-4 bg-[#3C5E5C] rounded"></div>
+                            <div className="w-4 h-4 bg-[#458dcf] rounded"></div>
                             <span className="text-sm text-gray-600">当前员工能力</span>
                           </div>
                           <div className="flex items-center space-x-2">
-                            <div className="w-4 h-4 bg-green-500 rounded"></div>
+                            <div className="w-4 h-4 bg-[#a1cdf1] rounded"></div>
                             <span className="text-sm text-gray-600">目标标准要求</span>
                           </div>
                         </div>
@@ -2917,7 +3201,7 @@ export default function QualificationManagementPage() {
                       <p className="text-sm font-medium">{selectedEmployee.subClass}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">岗位名称</p>
+                      <p className="text-sm text-gray-500">职务</p>
                       <p className="text-sm font-medium">{selectedEmployee.position}</p>
                     </div>
                     <div>
@@ -3033,6 +3317,34 @@ export default function QualificationManagementPage() {
                   </div>
                 </div>
               </div>
+              
+              {/* 添加确认发起评审按钮 */}
+              <div className="mt-8 pt-6 border-t border-gray-200">
+                <div className="flex justify-end space-x-3">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setShowEmployeeDetail(false)}
+                    className="text-sm"
+                  >
+                    取消
+                  </Button>
+                  <Button 
+                    className="bg-[#3C5E5C] hover:bg-[#2A4A48] text-white text-sm"
+                    onClick={() => {
+                      // 关闭员工详情弹窗
+                      setShowEmployeeDetail(false);
+                      // 显示成功提示
+                      setReviewSuccess(true);
+                      // 3秒后关闭成功提示
+                      setTimeout(() => {
+                        setReviewSuccess(false);
+                      }, 3000);
+                    }}
+                  >
+                    确认发起评审流程
+                  </Button>
+                </div>
+              </div>
             </div>
           )}
         </DialogContent>
@@ -3094,14 +3406,22 @@ export default function QualificationManagementPage() {
           setSelectedEmployeeForReview(null);
         }
       }}>
-        <DialogContent className="bg-white max-w-4xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="bg-white max-w-6xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-xl font-semibold">
-              {selectedProcess} 流程详情
+              任职资格评审流程 - {selectedEmployeeForReview?.name || "员工详情"}
             </DialogTitle>
           </DialogHeader>
           
-          <div className="space-y-6">
+          <div className="py-4">
+            <Tabs defaultValue="process" className="w-full">
+              <TabsList className="grid w-full grid-cols-3 bg-gray-100">
+                <TabsTrigger value="process" className="data-[state=active]:bg-white">流程信息</TabsTrigger>
+                <TabsTrigger value="employee" className="data-[state=active]:bg-white">员工详情</TabsTrigger>
+                <TabsTrigger value="history" className="data-[state=active]:bg-white">评审历史</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="process" className="space-y-6 mt-6">
             {/* 流程进度条 */}
             <div className="w-full py-4">
               <div className="relative">
@@ -3111,11 +3431,11 @@ export default function QualificationManagementPage() {
                     <div className="text-sm mt-1">资料填写</div>
                   </div>
                   <div className="text-center">
-                    <div className={`w-10 h-10 rounded-full ${selectedProcess === "资料填写中" ? "bg-gray-300 text-gray-600" : "bg-[#3C5E5C] text-white"} flex items-center justify-center mx-auto`}>2</div>
+                        <div className={`w-10 h-10 rounded-full ${selectedProcess === "资料填写中" ? "bg-gray-300 text-gray-600" : "bg-[#3C5E5C] text-white"} flex items-center justify-center mx-auto`}>2</div>
                     <div className="text-sm mt-1">资料审核</div>
                   </div>
                   <div className="text-center">
-                    <div className={`w-10 h-10 rounded-full ${selectedProcess === "资料填写中" || selectedProcess === "资料审核中" ? "bg-gray-300 text-gray-600" : "bg-[#3C5E5C] text-white"} flex items-center justify-center mx-auto`}>3</div>
+                        <div className={`w-10 h-10 rounded-full ${selectedProcess === "资料填写中" || selectedProcess === "资料审核中" ? "bg-gray-300 text-gray-600" : "bg-[#3C5E5C] text-white"} flex items-center justify-center mx-auto`}>3</div>
                     <div className="text-sm mt-1">技术评审</div>
                   </div>
                   <div className="text-center">
@@ -3128,12 +3448,12 @@ export default function QualificationManagementPage() {
                   </div>
                 </div>
                 <div className="absolute top-5 left-0 right-0 h-1 bg-gray-200 -z-10">
-                  <div className={`h-full bg-[#3C5E5C] ${
-                    selectedProcess === "资料填写中" ? "w-[0%]" :
-                    selectedProcess === "资料审核中" ? "w-[25%]" :
-                    selectedProcess === "技术评审中" ? "w-[50%]" :
-                    "w-[60%]"
-                  }`}></div>
+                      <div className={`h-full bg-[#3C5E5C] ${
+                        selectedProcess === "资料填写中" ? "w-[0%]" :
+                        selectedProcess === "资料审核中" ? "w-[25%]" :
+                        selectedProcess === "技术评审中" ? "w-[50%]" :
+                        "w-[60%]"
+                      }`}></div>
                 </div>
               </div>
             </div>
@@ -3146,15 +3466,15 @@ export default function QualificationManagementPage() {
                 <div>
                   <div className="mb-4">
                     <label className="block text-sm font-medium text-gray-700 mb-1">申请人姓名</label>
-                    <Input className="bg-white" defaultValue={selectedEmployeeForReview?.name || "李十三"} readOnly />
+                        <Input className="bg-white" defaultValue={selectedEmployeeForReview?.name || "李十三"} readOnly />
                   </div>
                   <div className="mb-4">
                     <label className="block text-sm font-medium text-gray-700 mb-1">申请人部门</label>
-                    <Input className="bg-white" defaultValue={selectedEmployeeForReview?.department || "研发部"} readOnly />
+                        <Input className="bg-white" defaultValue={selectedEmployeeForReview?.department || "研发部"} readOnly />
                   </div>
                   <div className="mb-4">
                     <label className="block text-sm font-medium text-gray-700 mb-1">申请认证职级</label>
-                    <Input className="bg-white" defaultValue={selectedEmployeeForReview ? `${selectedEmployeeForReview.currentLevel} ${selectedEmployeeForReview.position}` : "P6 资深工程师"} readOnly />
+                        <Input className="bg-white" defaultValue={selectedEmployeeForReview ? `${selectedEmployeeForReview.currentLevel} ${selectedEmployeeForReview.position}` : "P6 资深工程师"} readOnly />
                   </div>
                 </div>
                 
@@ -3165,7 +3485,7 @@ export default function QualificationManagementPage() {
                   </div>
                   <div className="mb-4">
                     <label className="block text-sm font-medium text-gray-700 mb-1">当前流程阶段</label>
-                    <Input className="bg-white" defaultValue={selectedProcess || "资料填写中"} readOnly />
+                        <Input className="bg-white" defaultValue={selectedProcess || "资料填写中"} readOnly />
                   </div>
                   <div className="mb-4">
                     <label className="block text-sm font-medium text-gray-700 mb-1">预计完成时间</label>
@@ -3208,17 +3528,17 @@ export default function QualificationManagementPage() {
               <div>
                 <h3 className="text-md font-medium text-gray-700 mb-3">流程记录</h3>
                 <div className="space-y-3">
-                  {selectedProcess === "资料填写中" && (
-                    <div className="p-3 border border-gray-200 rounded-md bg-white">
-                      <div className="flex justify-between">
-                        <span className="text-sm font-medium">流程发起</span>
-                        <span className="text-sm text-gray-500">{new Date().toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}</span>
-                      </div>
-                      <p className="text-sm text-gray-600 mt-1">评审流程已成功发起，请申请人完善资料填写。</p>
-                    </div>
-                  )}
-                  
-                  {selectedProcess !== "资料填写中" && (
+                      {selectedProcess === "资料填写中" && (
+                        <div className="p-3 border border-gray-200 rounded-md bg-white">
+                          <div className="flex justify-between">
+                            <span className="text-sm font-medium">流程发起</span>
+                            <span className="text-sm text-gray-500">{new Date().toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}</span>
+                          </div>
+                          <p className="text-sm text-gray-600 mt-1">评审流程已成功发起，请申请人完善资料填写。</p>
+                        </div>
+                      )}
+                      
+                      {selectedProcess !== "资料填写中" && (
                   <div className="p-3 border border-gray-200 rounded-md bg-white">
                     <div className="flex justify-between">
                       <span className="text-sm font-medium">资料审核</span>
@@ -3226,7 +3546,7 @@ export default function QualificationManagementPage() {
                     </div>
                     <p className="text-sm text-gray-600 mt-1">提交的资料齐全，符合申请条件。</p>
                   </div>
-                  )}
+                      )}
                   
                   {selectedProcess === "技术评审中" && (
                     <div className="p-3 border border-gray-200 rounded-md bg-white">
@@ -3240,6 +3560,164 @@ export default function QualificationManagementPage() {
                 </div>
               </div>
             )}
+              </TabsContent>
+              
+              <TabsContent value="employee" className="space-y-6 mt-6">
+                {selectedEmployeeForReview && (
+                  <div className="bg-white rounded-lg">
+                    {/* 员工基本信息 */}
+                    <div className="border-b border-gray-200 pb-6 mb-6">
+                      <div className="flex items-center space-x-4">
+                        <div className="h-16 w-16 rounded-full overflow-hidden">
+                          <img src={selectedEmployeeForReview.avatar} alt="员工头像" className="h-16 w-16 object-cover" />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="text-xl font-semibold text-gray-900">{selectedEmployeeForReview.name}</h3>
+                          <p className="text-sm text-gray-600 mt-1">{selectedEmployeeForReview.position} - {selectedEmployeeForReview.department}</p>
+                          <div className="flex items-center space-x-4 mt-2">
+                            <span className="text-sm text-gray-500">当前级别: <span className="font-medium text-gray-700">{selectedEmployeeForReview.currentLevel}</span></span>
+                            <span className="text-sm text-gray-500">认证时间: <span className="font-medium text-gray-700">{selectedEmployeeForReview.certificationDate}</span></span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* 员工详细信息 */}
+                    <div className="grid grid-cols-2 gap-6 mb-6">
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">工程总监</label>
+                          <div className="text-sm text-gray-900">{selectedEmployeeForReview.engineeringDirector}</div>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">直接主管</label>
+                          <div className="text-sm text-gray-900">{selectedEmployeeForReview.directManager}</div>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">团队Leader</label>
+                          <div className="text-sm text-gray-900">{selectedEmployeeForReview.teamLeader}</div>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">序列分类</label>
+                          <div className="text-sm text-gray-900">{selectedEmployeeForReview.sequence}</div>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">体系</label>
+                          <div className="text-sm text-gray-900">{selectedEmployeeForReview.system}</div>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">所属团队</label>
+                          <div className="text-sm text-gray-900">{selectedEmployeeForReview.team}</div>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">类别</label>
+                          <div className="text-sm text-gray-900">{selectedEmployeeForReview.category}</div>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">子类</label>
+                          <div className="text-sm text-gray-900">{selectedEmployeeForReview.subClass}</div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* 能力评估 */}
+                    <div className="border-t border-gray-200 pt-6">
+                      <h4 className="text-lg font-medium text-gray-900 mb-4">能力评估</h4>
+                      <div className="grid grid-cols-2 gap-6">
+                        <div className="bg-blue-50 p-4 rounded-lg">
+                          <div className="text-center">
+                            <div className="text-2xl font-bold text-blue-600">{selectedEmployeeForReview.knowledgeSkillScore}</div>
+                            <div className="text-sm text-gray-600">知识技能得分</div>
+                          </div>
+                        </div>
+                        <div className="bg-green-50 p-4 rounded-lg">
+                          <div className="text-center">
+                            <div className="text-2xl font-bold text-green-600">{selectedEmployeeForReview.keyAbilityScore}</div>
+                            <div className="text-sm text-gray-600">关键能力得分</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* 挑战等级和绩效 */}
+                    <div className="border-t border-gray-200 pt-6 mt-6">
+                      <div className="grid grid-cols-2 gap-6">
+                        <div>
+                          <h4 className="text-sm font-medium text-gray-700 mb-3">挑战等级</h4>
+                          <div className="flex flex-wrap gap-2">
+                            {selectedEmployeeForReview.challengeLevels.map((level: string, index: number) => (
+                              <span key={index} className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
+                                {level}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-medium text-gray-700 mb-3">绩效结果</h4>
+                          <div className="flex flex-wrap gap-2">
+                            {selectedEmployeeForReview.performanceResults.map((result: string, index: number) => (
+                              <span key={index} className={`px-2 py-1 text-xs rounded ${
+                                result.startsWith('A') ? 'bg-green-100 text-green-700' :
+                                result.startsWith('B') ? 'bg-blue-100 text-blue-700' :
+                                'bg-gray-100 text-gray-700'
+                              }`}>
+                                {result}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* 愿景得分 */}
+                    <div className="border-t border-gray-200 pt-6 mt-6">
+                      <h4 className="text-sm font-medium text-gray-700 mb-3">愿景得分</h4>
+                      <div className="flex space-x-4">
+                        {selectedEmployeeForReview.visionScores.map((score: number, index: number) => (
+                          <div key={index} className="text-center">
+                            <div className="text-lg font-semibold text-gray-900">{score}</div>
+                            <div className="text-xs text-gray-500">第{index + 1}期</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </TabsContent>
+              
+              <TabsContent value="history" className="space-y-6 mt-6">
+                {selectedEmployeeForReview && (
+                  <div className="bg-white rounded-lg">
+                    <h4 className="text-lg font-medium text-gray-900 mb-4">评审历史记录</h4>
+                    
+                    <div className="space-y-4">
+                      {selectedEmployeeForReview.reviewHistory.map((review: ReviewHistoryItem, index: number) => (
+                        <div key={index} className="border border-gray-200 rounded-lg p-4">
+                          <div className="flex justify-between items-start mb-2">
+                            <div>
+                              <h5 className="font-medium text-gray-900">{review.level}</h5>
+                              <p className="text-sm text-gray-600">{review.date}</p>
+                            </div>
+                            <span className={`px-2 py-1 text-xs rounded-full ${
+                              review.result === "通过" ? "bg-green-100 text-green-700" :
+                              review.result === "已提交" ? "bg-blue-100 text-blue-700" :
+                              review.result === "无异议" ? "bg-green-100 text-green-700" :
+                              "bg-gray-100 text-gray-700"
+                            }`}>
+                              {review.result}
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-600">评审者: {review.evaluator}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
           </div>
         </DialogContent>
       </Dialog>
@@ -3248,16 +3726,6 @@ export default function QualificationManagementPage() {
       {showReviewConfirmDialog && (
         <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-1/3 max-w-md">
-            {reviewSuccess ? (
-              <div className="text-center py-6">
-                <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
-                  <CheckIcon className="h-6 w-6 text-green-600" />
-                </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">评审流程已发起</h3>
-                <p className="text-sm text-gray-500">已成功发起评审流程</p>
-              </div>
-            ) : (
-              <>
                 <div className="mb-4">
                   <h3 className="text-lg font-medium text-gray-900 mb-2">确认发起评审流程</h3>
                   <p className="text-sm text-gray-500">确认对于勾选人员发起评审流程吗？</p>
@@ -3284,8 +3752,21 @@ export default function QualificationManagementPage() {
                     确认发起
                   </Button>
                 </div>
-              </>
-            )}
+          </div>
+        </div>
+      )}
+
+      {/* 独立的成功提示弹窗 */}
+      {reviewSuccess && (
+        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-1/3 max-w-md">
+            <div className="text-center py-6">
+              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
+                <CheckIcon className="h-6 w-6 text-green-600" />
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">评审流程已发起</h3>
+              <p className="text-sm text-gray-500">已成功发起评审流程</p>
+            </div>
           </div>
         </div>
       )}
@@ -3743,17 +4224,27 @@ export default function QualificationManagementPage() {
                 <TabsContent value="knowledge" className="space-y-4 py-4 bg-white border rounded-md p-4">
                   <div className="flex justify-between items-center">
                   <p className="text-sm text-gray-500">选择该岗位所需的知识技能要求，可多选</p>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => {
-                        setShowAddStandardDialog(false);
-                        setShowKnowledgeLibrary(true);
-                      }}
-                      className="text-[#3C5E5C] border-[#3C5E5C] hover:bg-[#3C5E5C] hover:text-white"
-                    >
-                      从库里选择
-                    </Button>
+                    <div className="flex space-x-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => openCreateCustomDialog('knowledge')}
+                        className="text-[#3C5E5C] border-[#3C5E5C] hover:bg-[#3C5E5C] hover:text-white"
+                      >
+                        + 自定义
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => {
+                          setShowAddStandardDialog(false);
+                          setShowKnowledgeLibrary(true);
+                        }}
+                        className="text-[#3C5E5C] border-[#3C5E5C] hover:bg-[#3C5E5C] hover:text-white"
+                      >
+                        从库里选择
+                      </Button>
+                    </div>
                   </div>
                   
                   <div className="space-y-8">
@@ -3794,17 +4285,27 @@ export default function QualificationManagementPage() {
                 <TabsContent value="ability" className="space-y-4 py-4 bg-white border rounded-md p-4">
                   <div className="flex justify-between items-center">
                   <p className="text-sm text-gray-500">选择该岗位所需的关键能力要求，可多选</p>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => {
-                        setShowAddStandardDialog(false);
-                        setShowAbilityLibrary(true);
-                      }}
-                      className="text-[#3C5E5C] border-[#3C5E5C] hover:bg-[#3C5E5C] hover:text-white"
-                    >
-                      从库里选择
-                    </Button>
+                    <div className="flex space-x-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => openCreateCustomDialog('ability')}
+                        className="text-[#3C5E5C] border-[#3C5E5C] hover:bg-[#3C5E5C] hover:text-white"
+                      >
+                        + 自定义
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => {
+                          setShowAddStandardDialog(false);
+                          setShowAbilityLibrary(true);
+                        }}
+                        className="text-[#3C5E5C] border-[#3C5E5C] hover:bg-[#3C5E5C] hover:text-white"
+                      >
+                        从库里选择
+                      </Button>
+                    </div>
                   </div>
                   
                   <div className="space-y-8">
@@ -3845,17 +4346,27 @@ export default function QualificationManagementPage() {
                 <TabsContent value="feedback" className="space-y-4 py-4 bg-white border rounded-md p-4">
                   <div className="flex justify-between items-center">
                   <p className="text-sm text-gray-500">选择该岗位所需的组织回馈要求，可多选</p>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => {
-                        setShowAddStandardDialog(false);
-                        setShowFeedbackLibrary(true);
-                      }}
-                      className="text-[#3C5E5C] border-[#3C5E5C] hover:bg-[#3C5E5C] hover:text-white"
-                    >
-                      从库里选择
-                    </Button>
+                    <div className="flex space-x-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => openCreateCustomDialog('feedback')}
+                        className="text-[#3C5E5C] border-[#3C5E5C] hover:bg-[#3C5E5C] hover:text-white"
+                      >
+                        + 自定义
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => {
+                          setShowAddStandardDialog(false);
+                          setShowFeedbackLibrary(true);
+                        }}
+                        className="text-[#3C5E5C] border-[#3C5E5C] hover:bg-[#3C5E5C] hover:text-white"
+                      >
+                        从库里选择
+                      </Button>
+                    </div>
                   </div>
                   
                   <div className="space-y-8">
@@ -4491,6 +5002,137 @@ export default function QualificationManagementPage() {
         </div>
       )}
 
+      {/* 自定义项目创建弹窗 */}
+      <Dialog open={showCreateCustomItemDialog} onOpenChange={setShowCreateCustomItemDialog}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>
+              创建自定义{customItemType === 'knowledge' ? '知识技能' : customItemType === 'ability' ? '关键能力' : '组织回馈'}项
+            </DialogTitle>
+            <DialogDescription>
+              创建自定义的{customItemType === 'knowledge' ? '知识技能' : customItemType === 'ability' ? '关键能力' : '组织回馈'}要求项，将自动添加到可选列表中
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">项目编码</label>
+                <Input
+                  value={customItemForm.code}
+                  onChange={(e) => handleCustomItemFormChange('code', e.target.value)}
+                  placeholder={customItemType === 'knowledge' ? '如 K001' : customItemType === 'ability' ? '如 A001' : '如 F001'}
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">项目名称 *</label>
+                <Input
+                  value={customItemForm.name}
+                  onChange={(e) => handleCustomItemFormChange('name', e.target.value)}
+                  placeholder={customItemType === 'knowledge' ? '如 Python编程' : customItemType === 'ability' ? '如 团队协作' : '如 月度绩效评估'}
+                />
+              </div>
+            </div>
+            
+            {customItemType === 'knowledge' && (
+              <>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">适用岗位</label>
+                  <Input
+                    value={customItemForm.positions}
+                    onChange={(e) => handleCustomItemFormChange('positions', e.target.value)}
+                    placeholder="如 后端工程师,全栈工程师"
+                  />
+                  <p className="text-xs text-gray-500">多个岗位使用逗号分隔</p>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">技能等级</label>
+                  <Select
+                    value={customItemForm.level}
+                    onValueChange={(value) => handleCustomItemFormChange('level', value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="选择等级" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="T1">T1 - 入门级</SelectItem>
+                      <SelectItem value="T2">T2 - 初级</SelectItem>
+                      <SelectItem value="T3">T3 - 中级</SelectItem>
+                      <SelectItem value="T4">T4 - 高级</SelectItem>
+                      <SelectItem value="T5">T5 - 专家级</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </>
+            )}
+            
+            {customItemType === 'ability' && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">能力分类</label>
+                <Select
+                  value={customItemForm.category}
+                  onValueChange={(value) => handleCustomItemFormChange('category', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="选择分类" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="战略规划">战略规划</SelectItem>
+                    <SelectItem value="架构/方案设计">架构/方案设计</SelectItem>
+                    <SelectItem value="方案实施/落地">方案实施/落地</SelectItem>
+                    <SelectItem value="运维/运营">运维/运营</SelectItem>
+                    <SelectItem value="问题解决与优化">问题解决与优化</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            
+            {customItemType === 'feedback' && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">反馈分类</label>
+                <Select
+                  value={customItemForm.category}
+                  onValueChange={(value) => handleCustomItemFormChange('category', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="选择分类" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="知识传承">知识传承</SelectItem>
+                    <SelectItem value="团队建设">团队建设</SelectItem>
+                    <SelectItem value="文化建设">文化建设</SelectItem>
+                    <SelectItem value="业务贡献">业务贡献</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">详细描述 *</label>
+              <textarea
+                className="w-full p-3 border border-gray-300 rounded-md resize-none"
+                rows={4}
+                value={customItemForm.description}
+                onChange={(e) => handleCustomItemFormChange('description', e.target.value)}
+                placeholder={`请详细描述${customItemType === 'knowledge' ? '知识技能' : customItemType === 'ability' ? '关键能力' : '组织回馈'}的内容和要求...`}
+              />
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCreateCustomItemDialog(false)}>
+              取消
+            </Button>
+            <Button 
+              onClick={handleCreateCustomItem}
+              className="bg-[#3C5E5C] hover:bg-[#2A4A48] text-white"
+            >
+              创建
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* 流程批量操作二次确认弹窗 */}
       {showProcessBatchConfirm && (
         <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
@@ -4532,6 +5174,6 @@ export default function QualificationManagementPage() {
           </div>
         </div>
       )}
-    </div>
+                    </div>
   );
 } 

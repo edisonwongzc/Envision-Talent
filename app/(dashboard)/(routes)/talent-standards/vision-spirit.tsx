@@ -77,13 +77,13 @@ export default function VisionSpiritPage() {
                     <text x="0" y="-45" textAnchor="middle" fontSize="12" fill="#64748b">1级</text>
                     
                     {/* 员工数据多边形 */}
-                    <polygon points="0,-40 60,0 0,60 -40,0" fill="#dbeafe" fillOpacity="0.6" stroke="#3b82f6" strokeWidth="2" />
+                    <polygon points="0,-40 60,0 0,60 -40,0" fill="rgba(161, 205, 241, 0.6)" fillOpacity="0.6" stroke="#458dcf" strokeWidth="2" />
                     
-                    {/* 数据点 */}
-                    <circle cx="0" cy="-40" r="4" fill="#3b82f6" />
-                    <circle cx="60" cy="0" r="4" fill="#3b82f6" />
-                    <circle cx="0" cy="60" r="4" fill="#3b82f6" />
-                    <circle cx="-40" cy="0" r="4" fill="#3b82f6" />
+                                          {/* 数据点 */}
+                      <circle cx="0" cy="-40" r="4" fill="#458dcf" />
+                      <circle cx="60" cy="0" r="4" fill="#458dcf" />
+                      <circle cx="0" cy="60" r="4" fill="#458dcf" />
+                      <circle cx="-40" cy="0" r="4" fill="#458dcf" />
                   </g>
                 </svg>
               </div>

@@ -109,15 +109,15 @@ export default function TalentAssessmentPage() {
           {/* 九宫格标题 */}
           <g className="text-sm font-medium">
             {/* 第一行 */}
-            <rect x="60" y="20" width="200" height="107" fill="#4CAF50" fillOpacity="0.8" />
+            <rect x="60" y="20" width="200" height="107" fill="#458dcf" fillOpacity="0.8" />
             <text x="160" y="73" textAnchor="middle" fill="white" fontSize="14">Workers</text>
             <text x="160" y="93" textAnchor="middle" fill="white" fontSize="12">工蜂</text>
             
-            <rect x="260" y="20" width="200" height="107" fill="#4CAF50" fillOpacity="0.9" />
+            <rect x="260" y="20" width="200" height="107" fill="#458dcf" fillOpacity="0.9" />
             <text x="360" y="73" textAnchor="middle" fill="white" fontSize="14">Contributors</text>
             <text x="360" y="93" textAnchor="middle" fill="white" fontSize="12">贡献者</text>
             
-            <rect x="460" y="20" width="200" height="107" fill="#8BC34A" />
+            <rect x="460" y="20" width="200" height="107" fill="#a1cdf1" />
             <text x="560" y="73" textAnchor="middle" fill="white" fontSize="14">Stars</text>
             <text x="560" y="93" textAnchor="middle" fill="white" fontSize="12">明星</text>
             
@@ -126,11 +126,11 @@ export default function TalentAssessmentPage() {
             <text x="160" y="180" textAnchor="middle" fill="white" fontSize="14">Blockers</text>
             <text x="160" y="200" textAnchor="middle" fill="white" fontSize="12">阻碍者</text>
             
-            <rect x="260" y="127" width="200" height="106" fill="#4CAF50" />
+            <rect x="260" y="127" width="200" height="106" fill="#458dcf" />
             <text x="360" y="180" textAnchor="middle" fill="white" fontSize="14">Transitionals</text>
             <text x="360" y="200" textAnchor="middle" fill="white" fontSize="12">过渡者</text>
             
-            <rect x="460" y="127" width="200" height="106" fill="#4CAF50" />
+            <rect x="460" y="127" width="200" height="106" fill="#458dcf" />
             <text x="560" y="180" textAnchor="middle" fill="white" fontSize="14">Emergers</text>
             <text x="560" y="200" textAnchor="middle" fill="white" fontSize="12">才华初露者</text>
             
@@ -140,10 +140,10 @@ export default function TalentAssessmentPage() {
             <text x="160" y="317" textAnchor="middle" fill="white" fontSize="12">拖木</text>
             
             <rect x="260" y="233" width="200" height="127" fill="#9E9E9E" />
-            <text x="360" y="297" textAnchor="middle" fill="white" fontSize="14">Placeholders</text>
+            <text x="360" y="297" textAnchor="middle" fill="white" fontSize="12">Placeholders</text>
             <text x="360" y="317" textAnchor="middle" fill="white" fontSize="12">占位者</text>
             
-            <rect x="460" y="233" width="200" height="127" fill="#4CAF50" />
+            <rect x="460" y="233" width="200" height="127" fill="#458dcf" />
             <text x="560" y="297" textAnchor="middle" fill="white" fontSize="14">Latents</text>
             <text x="560" y="317" textAnchor="middle" fill="white" fontSize="12">潜力者</text>
           </g>
