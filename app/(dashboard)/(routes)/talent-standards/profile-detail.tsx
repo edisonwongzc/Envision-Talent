@@ -295,17 +295,17 @@ export const VisionSpiritContent: React.FC = () => {
                       <text x="0" y="-55" textAnchor="middle" fontSize="18" fill="#64748b">2分</text>
 
                       {/* 个人数据三角形 */}
-                      <polygon points="0,-160 138.6,80 -138.6,80" fill="#dbeafe" fillOpacity="0.6" stroke="#3b82f6" strokeWidth="3" />
+                      <polygon points="0,-160 138.6,80 -138.6,80" fill="rgba(161, 205, 241, 0.6)" fillOpacity="0.6" stroke="#458dcf" strokeWidth="3" />
 
                     {/* 数据点 */}
-                      <circle cx="0" cy="-160" r="7" fill="#3b82f6" />
-                      <circle cx="138.6" cy="80" r="7" fill="#3b82f6" />
-                      <circle cx="-138.6" cy="80" r="7" fill="#3b82f6" />
+                      <circle cx="0" cy="-160" r="7" fill="#458dcf" />
+                      <circle cx="138.6" cy="80" r="7" fill="#458dcf" />
+                      <circle cx="-138.6" cy="80" r="7" fill="#458dcf" />
                       
                       {/* 数据标签 */}
-                      <text x="0" y="-160" dy="-12" textAnchor="middle" fill="#3b82f6" fontSize="24" fontWeight="500">4.2</text>
-                      <text x="138.6" y="80" dx="20" textAnchor="start" fill="#3b82f6" fontSize="24" fontWeight="500">4.5</text>
-                      <text x="-138.6" y="80" dx="-20" textAnchor="end" fill="#3b82f6" fontSize="24" fontWeight="500">4.0</text>
+                      <text x="0" y="-160" dy="-12" textAnchor="middle" fill="#458dcf" fontSize="24" fontWeight="500">4.2</text>
+                      <text x="138.6" y="80" dx="20" textAnchor="start" fill="#458dcf" fontSize="24" fontWeight="500">4.5</text>
+                      <text x="-138.6" y="80" dx="-20" textAnchor="end" fill="#458dcf" fontSize="24" fontWeight="500">4.0</text>
                   </g>
                 </svg>
               </div>
@@ -449,19 +449,19 @@ export const VisionSpiritContent: React.FC = () => {
                       <text x="400" y="135" dy="-10" textAnchor="middle" fill="#6366F1" fontSize="12">39.0</text>
                       <text x="650" y="135" dy="-10" textAnchor="middle" fill="#6366F1" fontSize="12">38.5</text>
                       
-                      {/* 平级数据线 - 蓝色 */}
+                      {/* 平级数据线 - 深蓝色 */}
                       <polyline 
                         points="150,135 400,165 650,130" 
                         fill="none" 
-                        stroke="#3B82F6" 
+                        stroke="#458dcf" 
                         strokeWidth="2"
                       />
-                      <circle cx="150" cy="135" r="4" fill="#3B82F6" />
-                      <circle cx="400" cy="165" r="4" fill="#3B82F6" />
-                      <circle cx="650" cy="130" r="4" fill="#3B82F6" />
-                      <text x="150" y="135" dy="-25" textAnchor="middle" fill="#3B82F6" fontSize="12">39.6</text>
-                      <text x="400" y="165" dy="-10" textAnchor="middle" fill="#3B82F6" fontSize="12">38.1</text>
-                      <text x="650" y="130" dy="-10" textAnchor="middle" fill="#3B82F6" fontSize="12">38.3</text>
+                      <circle cx="150" cy="135" r="4" fill="#458dcf" />
+                      <circle cx="400" cy="165" r="4" fill="#458dcf" />
+                      <circle cx="650" cy="130" r="4" fill="#458dcf" />
+                      <text x="150" y="135" dy="-25" textAnchor="middle" fill="#458dcf" fontSize="12">39.6</text>
+                      <text x="400" y="165" dy="-10" textAnchor="middle" fill="#458dcf" fontSize="12">38.1</text>
+                      <text x="650" y="130" dy="-10" textAnchor="middle" fill="#458dcf" fontSize="12">38.3</text>
                       
                       {/* 下级数据线 - 青色 */}
                       <polyline 
@@ -753,15 +753,15 @@ const renderNineGridChart = () => {
         {/* 九宫格标题 */}
         <g className="text-sm font-medium">
           {/* 第一行 */}
-          <rect x="60" y="20" width="200" height="107" fill="#4CAF50" fillOpacity="0.8" />
+          <rect x="60" y="20" width="200" height="107" fill="#458dcf" fillOpacity="0.8" />
           <text x="160" y="73" textAnchor="middle" fill="white" fontSize="14">Workers</text>
           <text x="160" y="93" textAnchor="middle" fill="white" fontSize="12">工蜂</text>
 
-          <rect x="260" y="20" width="200" height="107" fill="#4CAF50" fillOpacity="0.9" />
+          <rect x="260" y="20" width="200" height="107" fill="#458dcf" fillOpacity="0.9" />
           <text x="360" y="73" textAnchor="middle" fill="white" fontSize="14">Contributors</text>
           <text x="360" y="93" textAnchor="middle" fill="white" fontSize="12">贡献者</text>
 
-          <rect x="460" y="20" width="200" height="107" fill="#8BC34A" />
+          <rect x="460" y="20" width="200" height="107" fill="#a1cdf1" />
           <text x="560" y="73" textAnchor="middle" fill="white" fontSize="14">Stars</text>
           <text x="560" y="93" textAnchor="middle" fill="white" fontSize="12">明星</text>
 
@@ -770,11 +770,11 @@ const renderNineGridChart = () => {
           <text x="160" y="180" textAnchor="middle" fill="white" fontSize="14">Blockers</text>
           <text x="160" y="200" textAnchor="middle" fill="white" fontSize="12">阻碍者</text>
 
-          <rect x="260" y="127" width="200" height="106" fill="#4CAF50" />
+          <rect x="260" y="127" width="200" height="106" fill="#458dcf" />
           <text x="360" y="180" textAnchor="middle" fill="white" fontSize="14">Transitionals</text>
           <text x="360" y="200" textAnchor="middle" fill="white" fontSize="12">过渡者</text>
 
-          <rect x="460" y="127" width="200" height="106" fill="#4CAF50" />
+          <rect x="460" y="127" width="200" height="106" fill="#458dcf" />
           <text x="560" y="180" textAnchor="middle" fill="white" fontSize="14">Emergers</text>
           <text x="560" y="200" textAnchor="middle" fill="white" fontSize="12">才华初露者</text>
 
@@ -787,7 +787,7 @@ const renderNineGridChart = () => {
           <text x="360" y="297" textAnchor="middle" fill="white" fontSize="14">Placeholders</text>
           <text x="360" y="317" textAnchor="middle" fill="white" fontSize="12">占位者</text>
 
-          <rect x="460" y="233" width="200" height="127" fill="#4CAF50" />
+          <rect x="460" y="233" width="200" height="127" fill="#458dcf" />
           <text x="560" y="297" textAnchor="middle" fill="white" fontSize="14">Latents</text>
           <text x="560" y="317" textAnchor="middle" fill="white" fontSize="12">潜力者</text>
         </g>
@@ -806,22 +806,22 @@ const renderNineGridChart = () => {
         <text x="560" y="380" textAnchor="middle" fill="#64748B" fontSize="12">High高</text>
 
         {/* 团队成员标记（示例数据） */}
-        <circle cx="120" cy="80" r="10" fill="#3B82F6" />
+        <circle cx="120" cy="80" r="10" fill="#458dcf" />
         <text x="120" y="80" textAnchor="middle" fill="white" fontSize="10">张三</text>
 
-        <circle cx="320" cy="60" r="10" fill="#3B82F6" />
+        <circle cx="320" cy="60" r="10" fill="#458dcf" />
         <text x="320" y="60" textAnchor="middle" fill="white" fontSize="10">李四</text>
 
-        <circle cx="520" cy="70" r="10" fill="#3B82F6" />
+        <circle cx="520" cy="70" r="10" fill="#458dcf" />
         <text x="520" y="70" textAnchor="middle" fill="white" fontSize="10">王五</text>
 
-        <circle cx="280" cy="150" r="10" fill="#3B82F6" />
+        <circle cx="280" cy="150" r="10" fill="#458dcf" />
         <text x="280" y="150" textAnchor="middle" fill="white" fontSize="10">赵六</text>
 
-        <circle cx="500" cy="170" r="10" fill="#3B82F6" />
+        <circle cx="500" cy="170" r="10" fill="#458dcf" />
         <text x="500" y="170" textAnchor="middle" fill="white" fontSize="10">孙七</text>
 
-        <circle cx="550" cy="280" r="10" fill="#3B82F6" />
+        <circle cx="550" cy="280" r="10" fill="#458dcf" />
         <text x="550" y="280" textAnchor="middle" fill="white" fontSize="10">周八</text>
       </svg>
     </div>
@@ -2251,15 +2251,15 @@ export const TeamAssessmentContent: React.FC = () => {
                 {/* 九宫格标题 */}
                 <g className="text-sm font-medium">
                   {/* 第一行 */}
-                  <rect x="60" y="20" width="200" height="107" fill="#4CAF50" fillOpacity="0.8" />
+                  <rect x="60" y="20" width="200" height="107" fill="#458dcf" fillOpacity="0.8" />
                   <text x="160" y="73" textAnchor="middle" fill="white" fontSize="14">Workers</text>
                   <text x="160" y="93" textAnchor="middle" fill="white" fontSize="12">工蜂</text>
 
-                  <rect x="260" y="20" width="200" height="107" fill="#4CAF50" fillOpacity="0.9" />
+                  <rect x="260" y="20" width="200" height="107" fill="#458dcf" fillOpacity="0.9" />
                   <text x="360" y="73" textAnchor="middle" fill="white" fontSize="14">Contributors</text>
                   <text x="360" y="93" textAnchor="middle" fill="white" fontSize="12">贡献者</text>
 
-                  <rect x="460" y="20" width="200" height="107" fill="#8BC34A" />
+                  <rect x="460" y="20" width="200" height="107" fill="#a1cdf1" />
                   <text x="560" y="73" textAnchor="middle" fill="white" fontSize="14">Stars</text>
                   <text x="560" y="93" textAnchor="middle" fill="white" fontSize="12">明星</text>
 
@@ -2268,11 +2268,11 @@ export const TeamAssessmentContent: React.FC = () => {
                   <text x="160" y="180" textAnchor="middle" fill="white" fontSize="14">Blockers</text>
                   <text x="160" y="200" textAnchor="middle" fill="white" fontSize="12">阻碍者</text>
 
-                  <rect x="260" y="127" width="200" height="106" fill="#4CAF50" />
+                  <rect x="260" y="127" width="200" height="106" fill="#458dcf" />
                   <text x="360" y="180" textAnchor="middle" fill="white" fontSize="14">Transitionals</text>
                   <text x="360" y="200" textAnchor="middle" fill="white" fontSize="12">过渡者</text>
 
-                  <rect x="460" y="127" width="200" height="106" fill="#4CAF50" />
+                  <rect x="460" y="127" width="200" height="106" fill="#458dcf" />
                   <text x="560" y="180" textAnchor="middle" fill="white" fontSize="14">Emergers</text>
                   <text x="560" y="200" textAnchor="middle" fill="white" fontSize="12">才华初露者</text>
 
@@ -2285,7 +2285,7 @@ export const TeamAssessmentContent: React.FC = () => {
                   <text x="360" y="297" textAnchor="middle" fill="white" fontSize="14">Placeholders</text>
                   <text x="360" y="317" textAnchor="middle" fill="white" fontSize="12">占位者</text>
 
-                  <rect x="460" y="233" width="200" height="127" fill="#4CAF50" />
+                  <rect x="460" y="233" width="200" height="127" fill="#458dcf" />
                   <text x="560" y="297" textAnchor="middle" fill="white" fontSize="14">Latents</text>
                   <text x="560" y="317" textAnchor="middle" fill="white" fontSize="12">潜力者</text>
                 </g>
@@ -2304,22 +2304,22 @@ export const TeamAssessmentContent: React.FC = () => {
                 <text x="560" y="380" textAnchor="middle" fill="#64748B" fontSize="12">High高</text>
 
                 {/* 团队成员标记（示例数据） */}
-                <circle cx="120" cy="80" r="10" fill="#3B82F6" />
+                <circle cx="120" cy="80" r="10" fill="#458dcf" />
                 <text x="120" y="80" textAnchor="middle" fill="white" fontSize="10">张三</text>
 
-                <circle cx="320" cy="60" r="10" fill="#3B82F6" />
+                <circle cx="320" cy="60" r="10" fill="#458dcf" />
                 <text x="320" y="60" textAnchor="middle" fill="white" fontSize="10">李四</text>
 
-                <circle cx="520" cy="70" r="10" fill="#3B82F6" />
+                <circle cx="520" cy="70" r="10" fill="#458dcf" />
                 <text x="520" y="70" textAnchor="middle" fill="white" fontSize="10">王五</text>
 
-                <circle cx="280" cy="150" r="10" fill="#3B82F6" />
+                <circle cx="280" cy="150" r="10" fill="#458dcf" />
                 <text x="280" y="150" textAnchor="middle" fill="white" fontSize="10">赵六</text>
 
-                <circle cx="500" cy="170" r="10" fill="#3B82F6" />
+                <circle cx="500" cy="170" r="10" fill="#458dcf" />
                 <text x="500" y="170" textAnchor="middle" fill="white" fontSize="10">孙七</text>
 
-                <circle cx="550" cy="280" r="10" fill="#3B82F6" />
+                <circle cx="550" cy="280" r="10" fill="#458dcf" />
                 <text x="550" y="280" textAnchor="middle" fill="white" fontSize="10">周八</text>
               </svg>
             </div>
